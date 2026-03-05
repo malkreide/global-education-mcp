@@ -184,7 +184,7 @@ pytest tests/ -v
 
 ## Lizenz
 
-MIT License – Hayal Oezkan
+MIT License
 
 ---
 
