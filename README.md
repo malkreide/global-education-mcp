@@ -2,7 +2,7 @@
 
 **Internationaler Bildungsvergleich via UNESCO UIS und OECD APIs**
 
-MCP-Server für den Zugriff auf internationale Bildungsdaten – entwickelt vom Schulamt der Stadt Zürich. Verbindet zwei der wichtigsten Quellen für international vergleichbare Bildungsstatistiken direkt mit Claude.
+MCP-Server für den Zugriff auf internationale Bildungsdaten. Verbindet zwei der wichtigsten Quellen für international vergleichbare Bildungsstatistiken.
 
 ```
 Keine API-Schlüssel erforderlich · Dual-Transport (stdio + SSE) · 113 Tests
@@ -184,7 +184,7 @@ pytest tests/ -v
 
 ## Lizenz
 
-MIT License – Schulamt der Stadt Zürich
+MIT License – Hayal Oezkan
 
 ---
 
