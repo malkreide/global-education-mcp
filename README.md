@@ -7,7 +7,7 @@ MCP-Server für den Zugriff auf internationale Bildungsdaten. Verbindet zwei der
 ```
 Keine API-Schlüssel erforderlich · Dual-Transport (stdio + SSE) · 113 Tests
 ```
-
+**Teil des [Swiss Public Data MCP Portfolio](https://github.com/malkreide/swiss-public-data-mcp)**
 ---
 
 ## Datenquellen
