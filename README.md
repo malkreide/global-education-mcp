@@ -324,9 +324,7 @@ MIT License — see [LICENSE](LICENSE)
 
 ## Author
 
-malkreide · [github.com/malkreide](https://github.com/malkreide)
-
-Developed at the City of Zurich School Department (Schulamt der Stadt Zürich).
+Hayal Oezkan · [github.com/malkreide](https://github.com/malkreide)
 
 ---
 
