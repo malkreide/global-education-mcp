@@ -12,6 +12,7 @@
 [![Daten: OECD](https://img.shields.io/badge/Daten-OECD%20EaG-green)](https://www.oecd.org/education/education-at-a-glance/)
 [![Tests](https://img.shields.io/badge/Tests-113-brightgreen)](tests/)
 [![Kein API-Key](https://img.shields.io/badge/API%20Key-nicht%20erforderlich-success)](https://uis.unesco.org/bdds)
+![CI](https://github.com/malkreide/global-education-mcp/actions/workflows/ci.yml/badge.svg)
 
 > MCP-Server für internationale Bildungsdaten – UNESCO UIS (4'000+ Indikatoren für alle Mitgliedsländer) und OECD Education at a Glance via SDMX. Kein API-Key erforderlich.
 
