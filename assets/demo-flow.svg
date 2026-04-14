@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#0b1020"/>
+  <rect width="1200" height="6" fill="#7c3aed"/>
+
+  <!-- Header -->
+  <text x="60" y="70" font-size="34" font-weight="700" fill="#ffffff">global-education-mcp</text>
+  <text x="60" y="100" font-size="18" fill="#a5b4fc">UNESCO UIS · OECD Education at a Glance · via Model Context Protocol</text>
+
+  <!-- Step labels -->
+  <text x="170" y="170" font-size="14" font-weight="600" fill="#a5b4fc" letter-spacing="2">1 · CLAUDE FRAGT</text>
+  <text x="600" y="170" font-size="14" font-weight="600" fill="#a5b4fc" letter-spacing="2">2 · TOOL CALL</text>
+  <text x="990" y="170" font-size="14" font-weight="600" fill="#a5b4fc" letter-spacing="2">3 · ANTWORT</text>
+
+  <!-- Card 1: User question -->
+  <rect x="60" y="190" width="340" height="280" rx="14" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <circle cx="90" cy="220" r="12" fill="#7c3aed"/>
+  <text x="110" y="225" font-size="14" font-weight="600" fill="#e2e8f0">User</text>
+  <text x="80" y="265" font-size="16" fill="#f1f5f9">
+    <tspan x="80" dy="0">"Vergleiche die</tspan>
+    <tspan x="80" dy="22">Alphabetisierungsrate</tspan>
+    <tspan x="80" dy="22">der Schweiz mit</tspan>
+    <tspan x="80" dy="22">Finnland und Singapur</tspan>
+    <tspan x="80" dy="22">über die letzten</tspan>
+    <tspan x="80" dy="22">10 Jahre."</tspan>
+  </text>
+
+  <!-- Arrow 1 -->
+  <line x1="410" y1="330" x2="475" y2="330" stroke="#7c3aed" stroke-width="3"/>
+  <polygon points="475,322 490,330 475,338" fill="#7c3aed"/>
+
+  <!-- Card 2: Tool call -->
+  <rect x="500" y="190" width="340" height="280" rx="14" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <circle cx="530" cy="220" r="12" fill="#22c55e"/>
+  <text x="550" y="225" font-size="14" font-weight="600" fill="#e2e8f0">MCP Server</text>
+  <text x="520" y="262" font-size="13" font-family="ui-monospace, 'SFMono-Regular', Consolas, monospace" fill="#86efac">
+    <tspan x="520" dy="0">uis_compare_countries(</tspan>
+    <tspan x="520" dy="20">  countries=[</tspan>
+    <tspan x="520" dy="20">    "CHE","FIN","SGP"</tspan>
+    <tspan x="520" dy="20">  ],</tspan>
+    <tspan x="520" dy="20">  indicator=</tspan>
+    <tspan x="520" dy="20">    "LR.AG15T99",</tspan>
+    <tspan x="520" dy="20">  start_year=2014,</tspan>
+    <tspan x="520" dy="20">  end_year=2024)</tspan>
+  </text>
+
+  <!-- Arrow 2 -->
+  <line x1="850" y1="330" x2="915" y2="330" stroke="#22c55e" stroke-width="3"/>
+  <polygon points="915,322 930,330 915,338" fill="#22c55e"/>
+
+  <!-- Card 3: Response -->
+  <rect x="940" y="190" width="200" height="280" rx="14" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <circle cx="970" cy="220" r="12" fill="#38bdf8"/>
+  <text x="990" y="225" font-size="14" font-weight="600" fill="#e2e8f0">UNESCO UIS</text>
+
+  <text x="960" y="260" font-size="12" fill="#cbd5e1">Literacy rate (%)</text>
+
+  <!-- Mini bar chart -->
+  <text x="960" y="285" font-size="11" fill="#f1f5f9">CHE</text>
+  <rect x="995" y="276" width="125" height="12" rx="2" fill="#7c3aed"/>
+  <text x="1095" y="286" font-size="10" fill="#ffffff" text-anchor="end">99.0</text>
+
+  <text x="960" y="310" font-size="11" fill="#f1f5f9">FIN</text>
+  <rect x="995" y="301" width="125" height="12" rx="2" fill="#22c55e"/>
+  <text x="1095" y="311" font-size="10" fill="#ffffff" text-anchor="end">100.0</text>
+
+  <text x="960" y="335" font-size="11" fill="#f1f5f9">SGP</text>
+  <rect x="995" y="326" width="121" height="12" rx="2" fill="#38bdf8"/>
+  <text x="1091" y="336" font-size="10" fill="#ffffff" text-anchor="end">97.5</text>
+
+  <text x="960" y="375" font-size="11" fill="#94a3b8">Source attribution</text>
+  <text x="960" y="392" font-size="11" fill="#94a3b8">SDG-4 flags</text>
+  <text x="960" y="409" font-size="11" fill="#94a3b8">Markdown table</text>
+  <text x="960" y="426" font-size="11" fill="#94a3b8">No PII · CC-BY</text>
+
+  <!-- Footer -->
+  <line x1="60" y1="510" x2="1140" y2="510" stroke="#1e293b" stroke-width="1"/>
+  <text x="60" y="545" font-size="14" fill="#94a3b8">10 Tools · 2 Resources · 2 Prompts · 113 Tests · No API Key Required</text>
+  <text x="60" y="570" font-size="13" fill="#64748b">stdio for Claude Desktop · SSE for claude.ai in the browser</text>
+  <text x="1140" y="545" font-size="13" fill="#a5b4fc" text-anchor="end">github.com/malkreide/global-education-mcp</text>
+  <text x="1140" y="570" font-size="11" fill="#64748b" text-anchor="end">Part of the Swiss Public Data MCP Portfolio</text>
+</svg>

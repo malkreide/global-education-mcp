@@ -16,6 +16,8 @@
 
 [🇩🇪 Deutsche Version](README.de.md)
 
+![global-education-mcp demo flow](assets/demo-flow.svg)
+
 ---
 
 ## Overview
@@ -271,6 +273,22 @@ global-education-mcp/
 - **Historical depth:** UNESCO UIS data availability varies by indicator; not all series go back to 1970
 - **Language:** UNESCO UIS returns indicator labels in English only; OECD labels may vary by dataflow
 - **No real-time data:** Both sources publish annually – figures reflect the latest published edition, not live school statistics
+
+---
+
+## 🛡️ Safety & Limits
+
+| Aspect | Details |
+|--------|---------|
+| **Access** | Read-only (`readOnlyHint: true`) — the server cannot modify, write or delete any data |
+| **Personal data** | No personal data — UNESCO UIS and OECD EaG publish only aggregated, country-level statistics |
+| **Rate limits** | Built-in per-query caps (max 50 indicators per search, max 10 countries per comparison, conservative year ranges) |
+| **Caching** | In-memory TTL cache (1800–86400s) reduces upstream load and respects publisher capacity |
+| **Timeout** | 30 seconds per upstream API call, with graceful fallback to local reference data |
+| **Authentication** | No API keys required — both UNESCO UIS and OECD SDMX are publicly accessible |
+| **Licenses** | UNESCO UIS data under [CC BY-SA 3.0 IGO](https://creativecommons.org/licenses/by-sa/3.0/igo/); OECD data under [OECD Terms and Conditions](https://www.oecd.org/termsandconditions/) |
+| **Terms of Service** | Subject to ToS of the respective sources: [UNESCO UIS](https://uis.unesco.org/en/terms-and-conditions-use), [OECD](https://www.oecd.org/termsandconditions/) — please cite the source when redistributing |
+| **Attribution** | All tool responses include source attribution (`Source: UNESCO UIS` / `Source: OECD Education at a Glance`) |
 
 ---
 

@@ -2,6 +2,8 @@
 
 > 🇨🇭 **Teil des [Swiss Public Data MCP Portfolios](https://github.com/malkreide)**
 
+![global-education-mcp Demo-Flow](assets/demo-flow.svg)
+
 # 🎓 global-education-mcp
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
@@ -271,6 +273,22 @@ global-education-mcp/
 - **Historische Tiefe:** Die Datenverfügbarkeit der UNESCO UIS variiert je nach Indikator; nicht alle Zeitreihen reichen bis 1970 zurück
 - **Sprache:** UNESCO UIS liefert Indikatorbezeichnungen nur auf Englisch; OECD-Labels können je nach Dataflow variieren
 - **Keine Echtzeitdaten:** Beide Quellen veröffentlichen jährlich – die Zahlen entsprechen der neuesten publizierten Ausgabe, nicht aktuellen Schulstatistiken
+
+---
+
+## 🛡️ Sicherheit & Limiten
+
+| Aspekt | Details |
+|--------|---------|
+| **Zugriff** | Nur lesend (`readOnlyHint: true`) — der Server kann keine Daten verändern, schreiben oder löschen |
+| **Personenbezogene Daten** | Keine personenbezogenen Daten — UNESCO UIS und OECD EaG publizieren ausschliesslich aggregierte Statistiken auf Länderebene |
+| **Rate Limits** | Eingebaute Obergrenzen pro Anfrage (max. 50 Indikatoren pro Suche, max. 10 Länder pro Vergleich, konservative Jahresbereiche) |
+| **Caching** | In-Memory-TTL-Cache (1800–86400s) reduziert die Last auf Upstream-APIs und respektiert deren Kapazität |
+| **Timeout** | 30 Sekunden pro Upstream-API-Aufruf, mit Graceful Fallback auf lokale Referenzdaten |
+| **Authentifizierung** | Kein API-Key erforderlich — UNESCO UIS und OECD SDMX sind öffentlich zugänglich |
+| **Lizenzen** | UNESCO UIS Daten unter [CC BY-SA 3.0 IGO](https://creativecommons.org/licenses/by-sa/3.0/igo/); OECD-Daten unter [OECD Terms and Conditions](https://www.oecd.org/termsandconditions/) |
+| **Nutzungsbedingungen** | Es gelten die ToS der jeweiligen Quellen: [UNESCO UIS](https://uis.unesco.org/en/terms-and-conditions-use), [OECD](https://www.oecd.org/termsandconditions/) — bei Weiterverwendung bitte die Quelle zitieren |
+| **Quellenangabe** | Alle Tool-Antworten enthalten eine Quellenangabe (`Source: UNESCO UIS` / `Source: OECD Education at a Glance`) |
 
 ---
 
