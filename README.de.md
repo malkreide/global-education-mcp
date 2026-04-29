@@ -204,6 +204,8 @@ ISO 3166-1 Alpha-3 Standard:
 | *«Abschlussquoten Sekundarstufe II in 5 europäischen Ländern vergleichen»* | `education_benchmark_countries` |
 | *«SDG-4-Monitoring-Report für die Schweiz erstellen»* | `sdg4_monitoring` (Prompt) |
 
+→ [Weitere Anwendungsbeispiele nach Zielgruppe](EXAMPLES.md) →
+
 ---
 
 ## Architektur

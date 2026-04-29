@@ -204,6 +204,8 @@ ISO 3166-1 Alpha-3 standard:
 | *"Compare secondary graduation rates across 5 European countries"* | `education_benchmark_countries` |
 | *"Create an SDG-4 monitoring report for Switzerland"* | `sdg4_monitoring` (prompt) |
 
+→ [More use cases by audience](EXAMPLES.md) →
+
 ---
 
 ## Architecture
