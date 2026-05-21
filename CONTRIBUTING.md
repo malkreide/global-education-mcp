@@ -75,6 +75,71 @@ PYTHONPATH=src pytest tests/ -v
 
 ---
 
+## Logging & Error Handling
+
+### Structured JSON logging (audit finding OBS-003)
+
+All log output goes through `global_education_mcp.logging_setup.JSONFormatter`
+and writes one JSON object per line to **stderr**. Never write to stdout
+when the stdio transport is in use — stdout is reserved for MCP protocol
+frames.
+
+```python
+import logging
+logger = logging.getLogger("global_education_mcp.tool")
+logger.info("tool_call", extra={"extra_fields": {
+    "tool": "uis_get_education_data",
+    "duration_ms": 482,
+    "status": "ok",
+    "indicator": params.indicator_id,
+}})
+```
+
+`level` in the emitted JSON is RFC-5424 conform (debug/info/notice/warning/error/critical).
+Level configured via `LOG_LEVEL` env var (default `INFO`).
+
+Every `@mcp.tool` function should also be wrapped with `@logged_tool`:
+
+```python
+@mcp.tool(name="…", annotations={…})
+@logged_tool
+async def my_tool(params: MyInput) -> str:
+    ...
+```
+
+This emits one `tool_call` log line per invocation with `tool`, `duration_ms`,
+and `status` (`ok` | `error`). `functools.wraps` preserves the signature,
+so the FastMCP-generated input schema and the `tools.lock.json` hash stay
+stable.
+
+### Protocol vs. execution errors (audit finding OBS-001)
+
+`api_client.raise_if_transient(e, context)` distinguishes:
+
+- **Transient upstream failures** (5xx, `httpx.TimeoutException`,
+  `httpx.ConnectError`) → raises `McpError(code=INTERNAL_ERROR)` so the
+  MCP host can retry.
+- **4xx + other exceptions** → no-op; caller formats via
+  `handle_api_error()` and returns the text as a tool result, so the LLM
+  can adapt (e.g. suggest a different indicator).
+
+Pattern for new tools without a graceful fallback:
+
+```python
+try:
+    raw = await uis_get_data(...)
+    ...
+except Exception as e:
+    raise_if_transient(e, context="my_tool")  # 5xx/timeout -> McpError
+    return handle_api_error(e, "my_tool")     # 4xx/other -> text
+```
+
+Tools that have explicit graceful fallbacks (e.g. local indicator list when
+the UNESCO API is down) intentionally skip `raise_if_transient` — degraded
+data is better UX than a host-level retry that hits the same outage.
+
+---
+
 ## Tool-Signature-Lockfile
 
 The repository pins all MCP tool signatures (name, description, input schema,

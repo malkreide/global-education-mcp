@@ -555,3 +555,125 @@ class TestComplexWorkflows:
             )
             assert "Rang" in compare_result
             assert "FIN" in compare_result
+
+
+# ─── Logging + Error-Classification (OBS-003 + OBS-001) ────────────────────────
+
+
+class TestLoggingSetup:
+    """Strukturiertes JSON-Logging auf stderr (OBS-003)."""
+
+    def test_json_formatter_emits_valid_json(self):
+        import logging
+        from global_education_mcp.logging_setup import JSONFormatter
+
+        record = logging.LogRecord(
+            name="test", level=logging.INFO, pathname="x.py", lineno=1,
+            msg="tool_call", args=None, exc_info=None,
+        )
+        record.extra_fields = {"tool": "uis_list_indicators", "duration_ms": 42, "status": "ok"}
+        out = JSONFormatter().format(record)
+        parsed = json.loads(out)
+        assert parsed["level"] == "info"
+        assert parsed["msg"] == "tool_call"
+        assert parsed["tool"] == "uis_list_indicators"
+        assert parsed["duration_ms"] == 42
+        assert parsed["status"] == "ok"
+        assert "ts" in parsed
+
+    def test_configure_logging_writes_to_stderr_not_stdout(self, capsys):
+        import logging
+        from global_education_mcp.logging_setup import configure_logging
+
+        configure_logging("INFO")
+        logging.getLogger("smoke").info("hello", extra={"extra_fields": {"k": 1}})
+        captured = capsys.readouterr()
+        # stdio-Protocol-Sicherheit: NICHTS auf stdout, alles auf stderr
+        assert captured.out == ""
+        assert '"msg": "hello"' in captured.err
+        assert '"k": 1' in captured.err
+
+    def test_configure_logging_respects_log_level_env(self, monkeypatch):
+        import logging
+        from global_education_mcp.logging_setup import configure_logging
+
+        monkeypatch.setenv("LOG_LEVEL", "WARNING")
+        configure_logging()  # no explicit level -> reads env
+        assert logging.getLogger().level == logging.WARNING
+
+
+class TestErrorClassification:
+    """raise_if_transient: 5xx/Timeout/Connect -> McpError, 4xx -> no-op (OBS-001)."""
+
+    def test_timeout_raises_mcp_error(self):
+        import httpx
+        from mcp.shared.exceptions import McpError
+        from global_education_mcp.api_client import raise_if_transient
+
+        with pytest.raises(McpError) as exc:
+            raise_if_transient(httpx.TimeoutException("slow"), context="uis_test")
+        assert "uis_test" in str(exc.value)
+        assert "TimeoutException" in str(exc.value)
+
+    def test_connect_error_raises_mcp_error(self):
+        import httpx
+        from mcp.shared.exceptions import McpError
+        from global_education_mcp.api_client import raise_if_transient
+
+        with pytest.raises(McpError):
+            raise_if_transient(httpx.ConnectError("no dns"))
+
+    def test_5xx_raises_mcp_error(self):
+        import httpx
+        from mcp.shared.exceptions import McpError
+        from global_education_mcp.api_client import raise_if_transient
+
+        resp = AsyncMock()
+        resp.status_code = 503
+        err = httpx.HTTPStatusError("down", request=AsyncMock(), response=resp)
+        with pytest.raises(McpError) as exc:
+            raise_if_transient(err, context="oecd_test")
+        assert "503" in str(exc.value)
+
+    def test_4xx_is_noop(self):
+        import httpx
+        from global_education_mcp.api_client import raise_if_transient
+
+        resp = AsyncMock()
+        resp.status_code = 404
+        err = httpx.HTTPStatusError("not found", request=AsyncMock(), response=resp)
+        # Must NOT raise; caller handles 4xx as tool-result text
+        raise_if_transient(err)
+
+    def test_other_exception_is_noop(self):
+        from global_education_mcp.api_client import raise_if_transient
+        # ValueError / generic Exception bleibt unbehandelt -> caller formatiert.
+        raise_if_transient(ValueError("oops"))
+
+
+class TestLoggedToolDecorator:
+    """@logged_tool preserves signature + emits structured log entry."""
+
+    @pytest.mark.asyncio
+    async def test_decorator_preserves_signature_and_doc(self):
+        import inspect
+        from global_education_mcp.server import uis_list_indicators
+
+        sig = inspect.signature(uis_list_indicators)
+        assert list(sig.parameters) == ["params"]
+        # Description must be intact (FastMCP needs this for inputSchema/desc).
+        assert uis_list_indicators.__doc__ is not None
+        assert "UNESCO" in uis_list_indicators.__doc__
+
+    @pytest.mark.asyncio
+    async def test_decorator_logs_ok_status_on_success(self, caplog):
+        import logging
+        with patch("global_education_mcp.server.uis_get_indicators",
+                   new_callable=AsyncMock, return_value=[]):
+            with caplog.at_level(logging.INFO, logger="global_education_mcp.tool"):
+                from global_education_mcp.server import uis_list_indicators
+                await uis_list_indicators(UISIndicatorsInput())
+        ok_records = [r for r in caplog.records
+                      if getattr(r, "extra_fields", {}).get("status") == "ok"
+                      and getattr(r, "extra_fields", {}).get("tool") == "uis_list_indicators"]
+        assert len(ok_records) >= 1
