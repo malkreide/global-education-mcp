@@ -3,6 +3,7 @@ Gemeinsame HTTP-Client-Infrastruktur für UNESCO UIS und OECD APIs.
 Enthält Rate-Limiting, Caching und einheitliche Fehlerbehandlung.
 """
 
+import asyncio
 import json
 import logging
 from typing import Any, Optional
@@ -10,6 +11,22 @@ from typing import Any, Optional
 import httpx
 
 logger = logging.getLogger(__name__)
+
+# Shared httpx client, gesetzt durch den FastMCP-Lifespan in server.py.
+# Bei None (z.B. in Unit-Tests ohne Lifespan) erstellt http_get_* einen
+# Per-Request-Client als Fallback.
+_shared_client: Optional[httpx.AsyncClient] = None
+
+# Upstream-Throttling: max. 5 gleichzeitige Calls pro API, damit ein
+# uis_compare_countries(15 Länder) nicht das UNESCO-Quota auf einmal verbraucht.
+_uis_semaphore = asyncio.Semaphore(5)
+_oecd_semaphore = asyncio.Semaphore(5)
+
+
+def set_shared_client(client: Optional[httpx.AsyncClient]) -> None:
+    """Setzt den vom Lifespan verwalteten Shared-Client (oder löscht ihn)."""
+    global _shared_client
+    _shared_client = client
 
 # ─── Basis-URLs ───────────────────────────────────────────────────────────────
 
@@ -65,6 +82,7 @@ OECD_EDUCATION_DATAFLOWS = {
 # ─── HTTP-Client ──────────────────────────────────────────────────────────────
 
 TIMEOUT = httpx.Timeout(30.0, connect=10.0)
+LIMITS = httpx.Limits(max_connections=10, max_keepalive_connections=5)
 HEADERS_JSON = {"Accept": "application/json"}
 
 
@@ -75,7 +93,11 @@ async def http_get_json(
 ) -> Any:
     """Führt einen HTTP GET-Request aus und gibt JSON zurück."""
     request_headers = {**HEADERS_JSON, **(headers or {})}
-    async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+    if _shared_client is not None:
+        response = await _shared_client.get(url, params=params, headers=request_headers)
+        response.raise_for_status()
+        return response.json()
+    async with httpx.AsyncClient(timeout=TIMEOUT, limits=LIMITS) as client:
         response = await client.get(url, params=params, headers=request_headers)
         response.raise_for_status()
         return response.json()
@@ -87,8 +109,13 @@ async def http_get_text(
     headers: Optional[dict] = None,
 ) -> str:
     """Führt einen HTTP GET-Request aus und gibt Text zurück."""
-    async with httpx.AsyncClient(timeout=TIMEOUT) as client:
-        response = await client.get(url, params=params, headers=headers or {})
+    request_headers = headers or {}
+    if _shared_client is not None:
+        response = await _shared_client.get(url, params=params, headers=request_headers)
+        response.raise_for_status()
+        return response.text
+    async with httpx.AsyncClient(timeout=TIMEOUT, limits=LIMITS) as client:
+        response = await client.get(url, params=params, headers=request_headers)
         response.raise_for_status()
         return response.text
 
@@ -102,14 +129,16 @@ async def uis_get_indicators(theme: Optional[str] = None) -> list[dict]:
     params: dict = {}
     if theme:
         params["theme"] = theme
-    data = await http_get_json(url, params=params)
+    async with _uis_semaphore:
+        data = await http_get_json(url, params=params)
     return data if isinstance(data, list) else data.get("indicators", [])
 
 
 async def uis_get_geo_units() -> list[dict]:
     """Ruft verfügbare geografische Einheiten (Länder/Regionen) ab."""
     url = f"{UNESCO_BASE_URL}/geo-units"
-    data = await http_get_json(url)
+    async with _uis_semaphore:
+        data = await http_get_json(url)
     return data if isinstance(data, list) else data.get("geoUnits", [])
 
 
@@ -131,13 +160,15 @@ async def uis_get_data(
         params["endYear"] = end_year
     if version:
         params["version"] = version
-    return await http_get_json(url, params=params)
+    async with _uis_semaphore:
+        return await http_get_json(url, params=params)
 
 
 async def uis_get_versions() -> list[dict]:
     """Ruft verfügbare Datenbankversionen ab."""
     url = f"{UNESCO_BASE_URL}/versions"
-    data = await http_get_json(url)
+    async with _uis_semaphore:
+        data = await http_get_json(url)
     return data if isinstance(data, list) else data.get("versions", [])
 
 
@@ -149,7 +180,8 @@ async def oecd_get_dataflows(agency: str = "OECD.EDU.IMEP") -> list[dict]:
     url = f"{OECD_BASE_URL}/dataflow/{agency}"
     params = {"format": "jsondata"}
     try:
-        data = await http_get_json(url, params=params)
+        async with _oecd_semaphore:
+            data = await http_get_json(url, params=params)
         # SDMX-JSON Struktur parsen
         structures = data.get("data", {}).get("dataflows", [])
         return structures
@@ -183,7 +215,8 @@ async def oecd_get_education_data(
     if end_period:
         params["endPeriod"] = end_period
 
-    return await http_get_json(url, params=params)
+    async with _oecd_semaphore:
+        return await http_get_json(url, params=params)
 
 
 async def oecd_search_education_datasets(keyword: str) -> list[dict]:
@@ -191,7 +224,8 @@ async def oecd_search_education_datasets(keyword: str) -> list[dict]:
     url = f"{OECD_BASE_URL}/dataflow/all"
     params = {"format": "jsondata", "references": "none"}
     try:
-        data = await http_get_json(url, params=params)
+        async with _oecd_semaphore:
+            data = await http_get_json(url, params=params)
         all_flows = data.get("data", {}).get("dataflows", [])
         # Filtern nach Keyword
         keyword_lower = keyword.lower()
