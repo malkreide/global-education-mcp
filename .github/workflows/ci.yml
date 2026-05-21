@@ -31,3 +31,59 @@ jobs:
 
       - name: Verify tool signatures + description lint
         run: PYTHONPATH=src python scripts/tool_signatures.py ci
+
+  docker:
+    name: Docker build (sandboxed runtime)
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build hardened image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: global-education-mcp:ci
+
+      - name: Smoke-test sandboxed runtime
+        # Startet den Container mit denselben Flags wie docker-compose.yml
+        # (read-only, cap-drop, no-new-privileges) und prueft TCP-Reachability
+        # auf Port 8000. SSE-Endpoint selbst zu GETten ist unzuverlaessig
+        # (streamt, blockiert ggf.) — TCP-Connect reicht als Smoke-Test.
+        run: |
+          set -e
+          docker run -d --name ge-mcp-ci \
+            --read-only --cap-drop ALL --security-opt no-new-privileges \
+            --tmpfs /tmp:size=16M,mode=1777 \
+            -p 127.0.0.1:8000:8000 \
+            -e MCP_TRANSPORT=sse -e MCP_HOST=0.0.0.0 \
+            global-education-mcp:ci
+          ok=0
+          for i in $(seq 1 15); do
+            if python3 -c "import socket; socket.create_connection(('127.0.0.1', 8000), timeout=1).close()" 2>/dev/null; then
+              echo "SSE port 8000 reachable after ${i}s"
+              ok=1; break
+            fi
+            sleep 1
+          done
+          if [ "$ok" != "1" ]; then
+            echo "::error::server did not become reachable in 15s"
+            docker logs ge-mcp-ci
+            docker stop ge-mcp-ci || true
+            exit 1
+          fi
+          # Verifizieren: Prozess laeuft als non-root (uid 10001)
+          [ "$(docker exec ge-mcp-ci id -u)" = "10001" ] || (echo "::error::not running as uid 10001"; exit 1)
+          # Read-only-Filesystem verifizieren: /etc darf nicht beschreibbar sein
+          if docker exec ge-mcp-ci sh -c 'echo x > /etc/probe' 2>/dev/null; then
+            echo "::error::filesystem is writable despite --read-only"
+            exit 1
+          fi
+          docker logs ge-mcp-ci | tail -20
+          docker stop ge-mcp-ci

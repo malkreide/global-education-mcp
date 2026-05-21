@@ -120,27 +120,50 @@ Eine einsatzbereite `claude_desktop_config.json` liegt im Repository-Root.
 
 ### Cloud-Deployment (SSE für Browser-Zugriff)
 
-Für den Einsatz via **claude.ai im Browser** (z.B. auf verwalteten Arbeitsplätzen ohne lokale Software-Installation):
+Für den Einsatz via **claude.ai im Browser** (z.B. auf verwalteten Arbeitsplätzen ohne lokale Software-Installation).
 
-**Render.com (empfohlen):**
+> ⚠️ **Sicherheitshinweis:** Seit v0.3 ist `MCP_HOST` per Default `127.0.0.1`.
+> Der SSE-Transport muss **zwingend** hinter einem Reverse-Proxy laufen, der
+> TLS, Authentifizierung und Rate-Limiting ergänzt. Den rohen Port niemals
+> ins Internet exponieren — `MCP_HOST=0.0.0.0` ist nur innerhalb eines
+> isolierten Container-Netzes sicher.
+
+**Docker (empfohlen):**
+
+Das Repository liefert ein gehärtetes Multi-Stage-`Dockerfile` und eine
+`docker-compose.yml` mit `read_only: true`, `cap_drop: [ALL]`,
+`security_opt: [no-new-privileges:true]` und non-root User `uid 10001`.
+Die Compose-Datei bindet den Port auf `127.0.0.1` — ein Reverse-Proxy auf
+dem Host ist für externen Zugriff zwingend.
+
+```bash
+docker compose up --build
+# danach nginx/caddy auf 127.0.0.1:8000/sse mit TLS + Auth richten
+```
+
+Plain `docker run` (ohne Compose):
+
+```bash
+docker build -t global-education-mcp .
+docker run --rm \
+  --read-only --cap-drop ALL --security-opt no-new-privileges \
+  --tmpfs /tmp:size=16M,mode=1777 \
+  -p 127.0.0.1:8000:8000 \
+  global-education-mcp
+```
+
+**Render.com:**
 1. Repository auf GitHub pushen/forken
 2. Auf [render.com](https://render.com): New Web Service → GitHub-Repo verbinden
 3. Umgebungsvariablen im Render-Dashboard setzen:
    ```
    MCP_TRANSPORT=sse
+   MCP_HOST=0.0.0.0      # Render verlangt 0.0.0.0; deren Edge-Layer liefert TLS + Auth.
    PORT=8000
    ```
 4. In claude.ai unter Settings → MCP Servers eintragen: `https://your-app.onrender.com/sse`
 
-**Docker:**
-```bash
-docker build -t global-education-mcp .
-docker run -p 8000:8000 \
-  -e MCP_TRANSPORT=sse \
-  global-education-mcp
-```
-
-> 💡 *«stdio für den Entwickler-Laptop, SSE für den Browser.»*
+> 💡 *«stdio für den Entwickler-Laptop, sandboxed SSE-Container für den Browser.»*
 
 ---
 
