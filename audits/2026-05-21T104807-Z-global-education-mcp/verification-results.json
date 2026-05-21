@@ -1,0 +1,449 @@
+{
+  "audit_meta": {
+    "server_name": "global-education-mcp",
+    "server_version": "0.3.0",
+    "run_id": "2026-05-21T104807-Z-global-education-mcp",
+    "started_at": "2026-05-21T10:48:07.309520+00:00",
+    "timezone_offset": "Z",
+    "skill_version": "1.0.0",
+    "output_dir": "audits/2026-05-21T104807-Z-global-education-mcp",
+    "catalog_hash": "091f446b27965044ce658a1d5f4b2cabe2b0ab5661dcc1a53b6be8f1f2e093c0",
+    "catalog_dir": "/tmp/mcp-audit-skill/checks",
+    "previous_run": "2026-05-21T094452-Z-global-education-mcp",
+    "previous_findings_addressed": 12
+  },
+  "results": {
+    "ARCH-001": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "medium",
+      "evidence": [
+        "server.py: 10× @mcp.tool(name=\"...\")  alle snake_case",
+        "Beispiele: uis_list_indicators, oecd_search_datasets, education_benchmark_countries",
+        "Keine Spaces/Punkte/Sonderzeichen — alle Tool-Namen passen [a-z_]+"
+      ],
+      "gaps": []
+    },
+    "ARCH-002": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "medium",
+      "evidence": [
+        "Alle 10 Tool-Funktionen haben Multi-Satz-Docstrings mit Use-Case-Tags",
+        "Beispiel uis_compare_countries: 'Vergleicht Bildungsindikatoren zwischen mehreren Ländern (UNESCO UIS)...'",
+        "Args/Returns/Examples in Docstrings"
+      ],
+      "gaps": []
+    },
+    "ARCH-003": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "medium",
+      "evidence": [
+        "uis_list_indicators: Fallback auf UNESCO_EDUCATION_INDICATORS local-table bei API-Fehler",
+        "uis_list_countries: Statische ISO-Code-Liste als Fallback",
+        "Kontextuelle Empty-Responses statt nackter Leere"
+      ],
+      "gaps": []
+    },
+    "ARCH-004": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "high",
+      "evidence": [
+        "main() liest MCP_TRANSPORT env var, identische Tool-Logik für stdio + sse",
+        "FastMCP-Instanz ist transport-agnostisch definiert"
+      ],
+      "gaps": []
+    },
+    "ARCH-005": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "critical",
+      "evidence": [
+        "grep API_KEY/SECRET/TOKEN/PASSWORD in src/ → 0 Treffer",
+        "Nur Konfigurations-Env-Vars (MCP_HOST/PORT/MCP_TRANSPORT/LOG_LEVEL)",
+        "README explizit: 'No API keys required — public APIs'"
+      ],
+      "gaps": []
+    },
+    "ARCH-006": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "high",
+      "evidence": [
+        "10 Tools: 5 Discovery + 5 Use-Case",
+        "uis_country_education_profile bündelt 10 Indikatoren in einem Tool-Call (parallel)",
+        "education_benchmark_countries ist Cross-Source-Aggregation"
+      ],
+      "gaps": []
+    },
+    "ARCH-007": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "medium",
+      "evidence": [
+        "api_client.py:http_get_json/text als interne Composability-Helpers, nicht als MCP-Tools exponiert",
+        "Tools wie uis_country_education_profile rufen intern asyncio.gather mit 10× uis_get_data, exponieren aber nur ein atomares Tool"
+      ],
+      "gaps": []
+    },
+    "ARCH-008": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "medium",
+      "evidence": [
+        "10× @mcp.tool",
+        "2× @mcp.resource — education://indicators/unesco, education://datasets/oecd",
+        "2× @mcp.prompt — bildungsvergleich_schweiz, sdg4_monitoring"
+      ],
+      "gaps": []
+    },
+    "ARCH-009": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "high",
+      "evidence": [
+        "Alle 10 Tools haben annotations={readOnlyHint:True, destructiveHint:False, idempotentHint:True, openWorldHint:True}",
+        "tools.lock.json bestätigt die identische Annotations-Struktur über alle Tools"
+      ],
+      "gaps": []
+    },
+    "ARCH-011": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "medium",
+      "evidence": [
+        "src-Layout: src/global_education_mcp/{__init__.py, server.py, api_client.py, logging_setup.py}",
+        "tests/ mit 128 Tests in 2 Files",
+        "README.de.md + CHANGELOG.md + CONTRIBUTING.md + EXAMPLES.md vorhanden"
+      ],
+      "gaps": []
+    },
+    "ARCH-012": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "medium",
+      "evidence": [
+        "CHANGELOG.md (Keep-a-Changelog 1.1.0) vorhanden mit vollem 0.2.0→0.3.0 Trail",
+        "pyproject.toml: mcp[cli]>=1.0.0,<2.0.0; httpx>=0.27.0,<1.0.0; pydantic>=2.0.0,<3.0.0",
+        "README Compatibility-Tabelle mit MCP-Protocol 2024-11-05",
+        "__version__ = '0.3.0' synchron mit pyproject.toml"
+      ],
+      "gaps": []
+    },
+    "CH-005": {
+      "status": "pass",
+      "category": "ch",
+      "severity": "high",
+      "evidence": [
+        "README.md:309 'ISDS Protection Class (Stadt Zürich Schutzbedarfsklassen)' mit Tabelle",
+        "Vertraulichkeit/Integrität/Verfügbarkeit explizit + Gesamtklasse G1 (öffentlich)",
+        "Daten-Owner + System-Owner + PII=nein + DSG/EDÖB=keine dokumentiert",
+        "README.de.md:308 analog auf Deutsch"
+      ],
+      "gaps": []
+    },
+    "CH-006": {
+      "status": "pass",
+      "category": "ch",
+      "severity": "high",
+      "evidence": [
+        "README.md:323 'Schulamt Classification (BUI / Vertraulich / Streng Vertraulich)' Tabelle",
+        "Tool-Output / Cache / Logs / audits-Artefakte alle als BUI klassifiziert",
+        "→ Server ist für jeden Schulamt-Use-Case ohne weitere Datenschutz-Freigabe einsetzbar"
+      ],
+      "gaps": []
+    },
+    "OBS-001": {
+      "status": "pass",
+      "category": "obs",
+      "severity": "high",
+      "evidence": [
+        "api_client.py:244 raise_if_transient(e, context) — 5xx/Timeout/Connect → McpError(INTERNAL_ERROR), 4xx + other → no-op",
+        "Eingebaut in den 4 Tools ohne graceful Fallback (uis_get_education_data, uis_list_versions, oecd_get_education_indicator, oecd_search_datasets)",
+        "Tests: TestErrorClassification mit 5 Cases (timeout, connect, 5xx, 4xx, other)"
+      ],
+      "gaps": []
+    },
+    "OBS-002": {
+      "status": "pass",
+      "category": "obs",
+      "severity": "high",
+      "evidence": [
+        "handle_api_error: e.response.text[:200] Truncation",
+        "Kein Stacktrace im User-Output, kein interner Pfad-Leak",
+        "Keine DB/SQL im Code"
+      ],
+      "gaps": []
+    },
+    "OBS-003": {
+      "status": "pass",
+      "category": "obs",
+      "severity": "medium",
+      "evidence": [
+        "logging_setup.py mit JSONFormatter + RFC-5424-Level-Mapping",
+        "configure_logging() schreibt auf stderr (stdio-safe, OBS-004-konform)",
+        "@logged_tool Decorator auf allen 10 Tools — pro Call eine JSON-Zeile mit tool/duration_ms/status",
+        "LOG_LEVEL env var respected; manuell verifiziert"
+      ],
+      "gaps": []
+    },
+    "OBS-004": {
+      "status": "pass",
+      "category": "obs",
+      "severity": "critical",
+      "evidence": [
+        "grep print( in src/ → 0 Treffer",
+        "configure_logging() nutzt StreamHandler(sys.stderr) explizit",
+        "TestLoggingSetup.test_configure_logging_writes_to_stderr_not_stdout assert captured.out == ''"
+      ],
+      "gaps": []
+    },
+    "OPS-001": {
+      "status": "pass",
+      "category": "ops",
+      "severity": "high",
+      "evidence": [
+        "128 Tests in tests/test_server.py + test_extended_scenarios.py",
+        "pyproject.toml: pytest-marker 'integration' für Live-API",
+        "ci.yml: 'pytest -m \"not integration\"' (Unit-only in CI)"
+      ],
+      "gaps": []
+    },
+    "OPS-002": {
+      "status": "pass",
+      "category": "ops",
+      "severity": "medium",
+      "evidence": [
+        "README.md (EN) + README.de.md (DE) bilingual",
+        "ASCII-Architektur-Diagramm + Safety & Limits + Known Limitations",
+        "Neu: Compliance & Data Classification + Compatibility-Sektion"
+      ],
+      "gaps": []
+    },
+    "OPS-003": {
+      "status": "pass",
+      "category": "ops",
+      "severity": "high",
+      "evidence": [
+        "Alle 10 Tools sind read-only (annotations.readOnlyHint=True)",
+        "Version 0.3.0 — Phase 1 (Read-only first) konsistent durchgehalten",
+        "Keine Write-Tools eingeführt"
+      ],
+      "gaps": []
+    },
+    "SCALE-002": {
+      "status": "pass",
+      "category": "scale",
+      "severity": "high",
+      "evidence": [
+        "api_client.py:85 LIMITS = httpx.Limits(max_connections=10, max_keepalive_connections=5)",
+        "_uis_semaphore + _oecd_semaphore = Semaphore(5) drosseln auch parallele asyncio.gather-Patterns",
+        "uis_compare_countries / profile / benchmark nutzen asyncio.gather statt sequenzieller Loops"
+      ],
+      "gaps": []
+    },
+    "SCALE-005": {
+      "status": "n/a",
+      "category": "scale",
+      "severity": "medium",
+      "evidence": [
+        "Kein MCP-Gateway konfiguriert — Server wird direkt von Claude Desktop konsumiert"
+      ],
+      "gaps": []
+    },
+    "SDK-001": {
+      "status": "pass",
+      "category": "sdk",
+      "severity": "high",
+      "evidence": [
+        "server.py:120 @asynccontextmanager async def lifespan(_server) — shared httpx.AsyncClient",
+        "api_client.set_shared_client(client) in Lifespan-Setup; await client.aclose() im finally",
+        "FastMCP(..., lifespan=lifespan) übergeben"
+      ],
+      "gaps": []
+    },
+    "SDK-002": {
+      "status": "pass",
+      "category": "sdk",
+      "severity": "medium",
+      "evidence": [
+        "Alle 10 Tool-Inputs: BaseModel mit ConfigDict(str_strip_whitespace=True, extra='forbid')",
+        "Field-Constraints: min/max_length, ge/le auf allen Strings/Ints",
+        "pyproject.toml: pydantic>=2.0.0,<3.0.0"
+      ],
+      "gaps": []
+    },
+    "SDK-003": {
+      "status": "pass",
+      "category": "sdk",
+      "severity": "medium",
+      "evidence": [
+        "uis_compare_countries, uis_country_education_profile, education_benchmark_countries: ctx: Optional[Context] = None",
+        "_ctx_info + _ctx_progress Helpers wrappen ctx.info + ctx.report_progress mit no-op fallback",
+        "Pro fertigem Upstream-Call ein progress-Event via try/finally; pro Tool-Start ein info-Event",
+        "TestContextInjection: 5 Tests bestätigen progress count + backward-compat"
+      ],
+      "gaps": []
+    },
+    "SDK-004": {
+      "status": "pass",
+      "category": "sdk",
+      "severity": "high",
+      "evidence": [
+        "Alle Tools deklarieren explizit -> str (Markdown-Returns)",
+        "FastMCP wandelt str → TextContent automatisch"
+      ],
+      "gaps": []
+    },
+    "SEC-004": {
+      "status": "pass",
+      "category": "sec",
+      "severity": "critical",
+      "evidence": [
+        "api_client.py: UNESCO_BASE_URL + OECD_BASE_URL hardcoded mit https://",
+        "Keine user-supplied URLs im HTTP-Request-Path",
+        "Country-Codes nur in Query-String, kein Path-Traversal-Vektor"
+      ],
+      "gaps": []
+    },
+    "SEC-005": {
+      "status": "pass",
+      "category": "sec",
+      "severity": "high",
+      "evidence": [
+        "Keine API-Keys nötig — public APIs",
+        "Keine Credentials in src/, pyproject.toml, claude_desktop_config.json, docker-compose.yml"
+      ],
+      "gaps": []
+    },
+    "SEC-006": {
+      "status": "pass",
+      "category": "sec",
+      "severity": "high",
+      "evidence": [
+        "server.py:153 host=os.environ.get('MCP_HOST', '127.0.0.1') — Default loopback",
+        "main() warnt strukturiert (logger.warning host_exposed_warning) wenn MCP_TRANSPORT!=stdio UND MCP_HOST=0.0.0.0",
+        "README/README.de Cloud-Deployment-Sektion: TLS+Auth via Reverse-Proxy zwingend; Render-Sonderfall dokumentiert"
+      ],
+      "gaps": []
+    },
+    "SEC-007": {
+      "status": "pass",
+      "category": "sec",
+      "severity": "high",
+      "evidence": [
+        "Dockerfile: multi-stage build, non-root User mcp (uid 10001, nologin-shell), kein Build-Toolchain im final image",
+        "docker-compose.yml: read_only=true, cap_drop=[ALL], security_opt=[no-new-privileges:true], tmpfs /tmp:16M, ports auf 127.0.0.1",
+        "CI-Job 'docker': baut Image + verifiziert uid=10001 + read-only-Filesystem nicht beschreibbar"
+      ],
+      "gaps": []
+    },
+    "SEC-008": {
+      "status": "pass",
+      "category": "sec",
+      "severity": "medium",
+      "evidence": [
+        "claude_desktop_config.json zeigt explizit den Server-Eintrag → User-Aktion nötig",
+        "README dokumentiert Installations- + Config-Pfad transparent"
+      ],
+      "gaps": []
+    },
+    "SEC-009": {
+      "status": "n/a",
+      "category": "sec",
+      "severity": "high",
+      "evidence": ["auth_model=none — kein Replay-Risiko"],
+      "gaps": []
+    },
+    "SEC-013": {
+      "status": "n/a",
+      "category": "sec",
+      "severity": "high",
+      "evidence": ["Keine API-Keys nötig"],
+      "gaps": []
+    },
+    "SEC-014": {
+      "status": "n/a",
+      "category": "sec",
+      "severity": "medium",
+      "evidence": ["Kein MCP-Gateway im Setup"],
+      "gaps": []
+    },
+    "SEC-015": {
+      "status": "pass",
+      "category": "sec",
+      "severity": "medium",
+      "evidence": [
+        "scripts/tool_signatures.py: lint subcommand mit 8 Regex-Patterns (instruction-override, role-elevation, jailbreak, code-execution, sensible filesystem-paths, falsche Rollen-Token)",
+        "CI-Step 'Verify tool signatures + description lint' läuft auf allen 3 Python-Versionen",
+        "CONTRIBUTING.md dokumentiert Workflow + false-positive-Handling"
+      ],
+      "gaps": []
+    },
+    "SEC-016": {
+      "status": "n/a",
+      "category": "sec",
+      "severity": "high",
+      "evidence": ["Kein OAuth/Session-Cookies — auth_model=none"],
+      "gaps": []
+    },
+    "SEC-018": {
+      "status": "pass",
+      "category": "sec",
+      "severity": "high",
+      "evidence": [
+        "Alle Pydantic-Inputs: ConfigDict(str_strip_whitespace=True, extra='forbid') — strict mode",
+        "Field-Constraints: min_length/max_length, ge/le, pattern (z.B. focus-enum)",
+        "Listen-Constraints (country_codes: min=2, max=15)"
+      ],
+      "gaps": []
+    },
+    "SEC-019": {
+      "status": "pass",
+      "category": "sec",
+      "severity": "critical",
+      "evidence": [
+        "Read-only Server (alle 10 Tools: readOnlyHint=True, destructiveHint=False)",
+        "Schreibt nichts (keine DB, keine Files, kein Email, keine MCP-Bridge)",
+        "Lethal Trifecta nicht möglich — kein Write-/Exfil-Pfad"
+      ],
+      "gaps": []
+    },
+    "SEC-020": {
+      "status": "pass",
+      "category": "sec",
+      "severity": "critical",
+      "evidence": [
+        "grep os.system|subprocess|shell=True|eval(|exec(|pickle.load in src/ → 0 Treffer",
+        "Einzige externe Operation: httpx-GET auf hardcoded HTTPS-URLs",
+        "scripts/tool_signatures.py lint patterns würden ähnliche Anti-Patterns auch in Tool-Descriptions blockieren"
+      ],
+      "gaps": []
+    },
+    "SEC-021": {
+      "status": "pass",
+      "category": "sec",
+      "severity": "high",
+      "evidence": [
+        "Code-Layer-Allow-List: 2 hardcoded Domains (api.uis.unesco.org, sdmx.oecd.org)",
+        "Container-Layer: docker-compose.yml bindet Ports auf 127.0.0.1 — Reverse-Proxy filtert Egress sekundär",
+        "Keine user-supplied URL-Inputs, kein dynamischer Domain-Build"
+      ],
+      "gaps": []
+    },
+    "SEC-022": {
+      "status": "pass",
+      "category": "sec",
+      "severity": "high",
+      "evidence": [
+        "tools.lock.json: SHA-256 pro Tool-Signatur (name, description, inputSchema, annotations), 10 Tools committed",
+        "scripts/tool_signatures.py: verify subcommand diff gegen Lockfile, exit 1 bei Drift",
+        "CI-Step blockiert PRs ohne bewussten Lockfile-Update",
+        "inspect.cleandoc() für Python-3.13-Compat (whatsnew 3.13 PEP-257 dedent)"
+      ],
+      "gaps": []
+    }
+  }
+}
