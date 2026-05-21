@@ -301,6 +301,52 @@ global-education-mcp/
 
 ---
 
+## Compliance & Data Classification (City of Zurich)
+
+> Verbindliche Klassifikation für den Einsatz im Schulamt der Stadt Zürich
+> (German section follows in `README.de.md`).
+
+### ISDS Protection Class (Stadt Zürich Schutzbedarfsklassen)
+
+| Dimension | Class | Reasoning |
+|---|---|---|
+| Confidentiality | public | UNESCO UIS data licensed under [CC BY-SA 3.0 IGO](https://creativecommons.org/licenses/by-sa/3.0/igo/); OECD EaG under public [OECD Terms](https://www.oecd.org/termsandconditions/) |
+| Integrity | normal | Upstream is authoritative; local in-memory cache is TTL-bounded and never written to disk |
+| Availability | normal | Graceful fallback to bundled static reference data when an API is unreachable |
+| **Overall protection class** | **G1 — public (öffentlich)** | lowest tier per ISDS Stadt Zürich |
+
+- Data owner: UNESCO UIS / OECD (external)
+- System owner: Schulamt der Stadt Zürich
+- Processes personal data: **no**
+- DSG / EDÖB relevance: **none** (only anonymized country-level aggregates)
+
+### Schulamt Classification (BUI / Vertraulich / Streng Vertraulich)
+
+| Aspect | Classification |
+|---|---|
+| Tool output (Markdown tables, summaries) | **BUI** (betrieblich unkritische Information) |
+| In-memory TTL cache | BUI (same tier as source) |
+| Structured logs (JSON on stderr, see OBS-003) | BUI — only tool name, params, duration; no PII |
+| `tools.lock.json`, `audits/` artefacts | BUI |
+
+→ The server is approved for any Schulamt use case without additional clearance from the data protection officer.
+
+### Compatibility
+
+| Component | Supported version |
+|---|---|
+| MCP Protocol | 2024-11-05 |
+| MCP Python SDK | `>=1.0.0,<2.0.0` |
+| Python | 3.11, 3.12, 3.13 |
+| `httpx` | `>=0.27.0,<1.0.0` |
+| `pydantic` | `>=2.0.0,<3.0.0` |
+
+Major-version upgrades are deliberate decisions — the upper bounds in
+`pyproject.toml` exist so a transitive bump does not silently break the
+server. See `CHANGELOG.md` for the upgrade trail.
+
+---
+
 ## 🛡️ Safety & Limits
 
 | Aspect | Details |

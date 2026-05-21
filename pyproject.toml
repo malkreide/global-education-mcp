@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "global-education-mcp"
-version = "0.2.0"
+version = "0.3.0"
 description = "MCP Server für internationale Bildungsdaten – UNESCO UIS (4000+ Indikatoren) und OECD Education at a Glance (SDMX API)"
 readme = "README.md"
 license = "MIT"
@@ -28,9 +28,12 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Information Analysis",
 ]
 dependencies = [
-    "mcp[cli]>=1.0.0",
-    "httpx>=0.27.0",
-    "pydantic>=2.0.0",
+    # Obere Grenzen pinnen: MCP-/Pydantic-/httpx-Major-Bumps koennten
+    # Breaking-Changes mitbringen (FastMCP-Annotations, ConfigDict-Migration).
+    # Bewusster Upgrade-Pfad: Bound erhoehen + tools.lock.json regenerieren.
+    "mcp[cli]>=1.0.0,<2.0.0",
+    "httpx>=0.27.0,<1.0.0",
+    "pydantic>=2.0.0,<3.0.0",
 ]
 
 [project.optional-dependencies]
