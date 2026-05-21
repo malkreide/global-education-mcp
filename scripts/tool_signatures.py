@@ -28,6 +28,7 @@ import argparse
 import asyncio
 import difflib
 import hashlib
+import inspect
 import json
 import re
 import sys
@@ -71,9 +72,16 @@ async def collect_signatures() -> dict[str, Any]:
         annotations_dict: Any = None
         if tool.annotations is not None:
             annotations_dict = tool.annotations.model_dump(mode="json", exclude_none=True)
+        # Docstrings deterministisch normalisieren. Python 3.13 strippt
+        # gemeinsame Einrueckung beim Compile (whatsnew 3.13, PEP-257-style),
+        # 3.11/3.12 nicht — `inspect.cleandoc` macht das auf allen Versionen
+        # gleich und produziert einen stabilen Hash.
+        description = tool.description
+        if description is not None:
+            description = inspect.cleandoc(description)
         signature = {
             "name": tool.name,
-            "description": tool.description,
+            "description": description,
             "inputSchema": tool.inputSchema,
             "annotations": annotations_dict,
         }

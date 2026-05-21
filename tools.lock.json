@@ -1,6 +1,6 @@
 {
   "education_benchmark_countries": {
-    "hash": "eafcf73bbe0783c3e0a144c279e4f2a27bacade3237f088470beeaab5f098246",
+    "hash": "65ab6913ccdde306cc1dc1da213f0830d4aef35ebbcc11f12a758e427c988d70",
     "signature": {
       "annotations": {
         "destructiveHint": false,
@@ -9,7 +9,7 @@
         "readOnlyHint": true,
         "title": "Bildungsbenchmark mehrerer Länder"
       },
-      "description": "Benchmarkt mehrere Länder auf einem Bildungsthema via UNESCO UIS.\n\n    Automatisch werden die passenden Indikatoren für den gewählten Fokus\n    ausgewählt und ein strukturierter Vergleich erstellt.\n\n    Fokus-Optionen:\n      - literacy: Alphabetisierungsraten (Erwachsene + Jugendliche)\n      - spending: Bildungsausgaben (% BIP, verschiedene Stufen)\n      - completion: Abschlussquoten (Primar, Sek I, Sek II)\n      - teachers: Schüler-Lehrer-Verhältnis + Lehrerausbildung\n      - enrollment: Einschulungsraten nach Schulstufe\n\n    Args:\n        params: country_codes, focus\n\n    Returns:\n        Vollständiger Benchmarkreport mit Tabellen für alle relevanten Indikatoren\n    ",
+      "description": "Benchmarkt mehrere Länder auf einem Bildungsthema via UNESCO UIS.\n\nAutomatisch werden die passenden Indikatoren für den gewählten Fokus\nausgewählt und ein strukturierter Vergleich erstellt.\n\nFokus-Optionen:\n  - literacy: Alphabetisierungsraten (Erwachsene + Jugendliche)\n  - spending: Bildungsausgaben (% BIP, verschiedene Stufen)\n  - completion: Abschlussquoten (Primar, Sek I, Sek II)\n  - teachers: Schüler-Lehrer-Verhältnis + Lehrerausbildung\n  - enrollment: Einschulungsraten nach Schulstufe\n\nArgs:\n    params: country_codes, focus\n\nReturns:\n    Vollständiger Benchmarkreport mit Tabellen für alle relevanten Indikatoren",
       "inputSchema": {
         "$defs": {
           "CrossSourceInput": {
@@ -56,7 +56,7 @@
     }
   },
   "oecd_get_education_indicator": {
-    "hash": "a108fb26a17ec59e554f01c9c332120f7d32050103a0bc8cf0e413c5a6ab69e5",
+    "hash": "c583b3c26ab0c7963e9216afe2936b3266c2b395ad3a8638214c4772f11caf8c",
     "signature": {
       "annotations": {
         "destructiveHint": false,
@@ -65,7 +65,7 @@
         "readOnlyHint": true,
         "title": "OECD-Bildungsindikatoren abrufen"
       },
-      "description": "Ruft Bildungsdaten aus dem OECD Education at a Glance Report ab.\n\n    Greift auf die OECD SDMX REST API zu. Liefert strukturierte Daten\n    für OECD-Länder zu Bildungsausgaben, Einschreibungsraten, Lehrergehältern etc.\n\n    Beispiele:\n      - Bildungsausgaben Schweiz/DE/AT: dataflow='EAG_FISC', countries=['CHE','DEU','AUT']\n      - Lehrergehälter OECD: dataflow='EAG_PERS_SALARY'\n      - Beschäftigung nach Bildungsabschluss: dataflow='EAG_EMP_EDUC'\n\n    Args:\n        params: dataflow_id, countries (optional), start_period, end_period\n\n    Returns:\n        Markdown-formatierte Datentabelle oder Rohdaten-Zusammenfassung\n    ",
+      "description": "Ruft Bildungsdaten aus dem OECD Education at a Glance Report ab.\n\nGreift auf die OECD SDMX REST API zu. Liefert strukturierte Daten\nfür OECD-Länder zu Bildungsausgaben, Einschreibungsraten, Lehrergehältern etc.\n\nBeispiele:\n  - Bildungsausgaben Schweiz/DE/AT: dataflow='EAG_FISC', countries=['CHE','DEU','AUT']\n  - Lehrergehälter OECD: dataflow='EAG_PERS_SALARY'\n  - Beschäftigung nach Bildungsabschluss: dataflow='EAG_EMP_EDUC'\n\nArgs:\n    params: dataflow_id, countries (optional), start_period, end_period\n\nReturns:\n    Markdown-formatierte Datentabelle oder Rohdaten-Zusammenfassung",
       "inputSchema": {
         "$defs": {
           "OECDDataInput": {
@@ -147,7 +147,7 @@
     }
   },
   "oecd_list_education_datasets": {
-    "hash": "5a1c3083ca14360e3f8f41a8598d8b0caa780bfe46c98da8644119230c6ee39e",
+    "hash": "f01c287061b3b2d3d890acef19c596a24652c88fd5b9106c0f69600ed3b01ab9",
     "signature": {
       "annotations": {
         "destructiveHint": false,
@@ -156,7 +156,7 @@
         "readOnlyHint": true,
         "title": "OECD-Bildungsdatensätze auflisten"
       },
-      "description": "Listet verfügbare OECD Education at a Glance Datensätze auf.\n\n    Education at a Glance ist das jährliche Referenzwerk der OECD für\n    internationale Bildungsvergleiche. Es umfasst 38 OECD-Länder plus Partner.\n\n    Abgedeckte Themenbereiche:\n      - Bildungsbeteiligung und -abschlüsse (EAG_ENRL, EAG_GRAD_ENTR)\n      - Bildungsausgaben und Finanzierung (EAG_FISC)\n      - Lehrpersonal und Arbeitsbedingungen (EAG_PERS, EAG_PERS_SALARY)\n      - Bildungsrendite und Arbeitsmarkt (EAG_EMP_EDUC, EAG_EARN_RATIO)\n\n    Returns:\n        Markdown-Liste der Datensätze mit Beschreibungen und Dataflow-IDs\n    ",
+      "description": "Listet verfügbare OECD Education at a Glance Datensätze auf.\n\nEducation at a Glance ist das jährliche Referenzwerk der OECD für\ninternationale Bildungsvergleiche. Es umfasst 38 OECD-Länder plus Partner.\n\nAbgedeckte Themenbereiche:\n  - Bildungsbeteiligung und -abschlüsse (EAG_ENRL, EAG_GRAD_ENTR)\n  - Bildungsausgaben und Finanzierung (EAG_FISC)\n  - Lehrpersonal und Arbeitsbedingungen (EAG_PERS, EAG_PERS_SALARY)\n  - Bildungsrendite und Arbeitsmarkt (EAG_EMP_EDUC, EAG_EARN_RATIO)\n\nReturns:\n    Markdown-Liste der Datensätze mit Beschreibungen und Dataflow-IDs",
       "inputSchema": {
         "properties": {},
         "title": "oecd_list_education_datasetsArguments",
@@ -166,7 +166,7 @@
     }
   },
   "oecd_search_datasets": {
-    "hash": "a54b8aec9331140b50c1284b289f38f7216e9571623900cc3e3b72899817bf72",
+    "hash": "0d677b2500cab6a9eee9df7e2e128b22124f7a7e882207a39721bf214f53e5bc",
     "signature": {
       "annotations": {
         "destructiveHint": false,
@@ -175,7 +175,7 @@
         "readOnlyHint": true,
         "title": "OECD-Datensätze durchsuchen"
       },
-      "description": "Durchsucht alle OECD-Datensätze nach einem Stichwort.\n\n    Über die OECD SDMX API sind hunderte Datensätze verfügbar.\n    Diese Funktion findet Datensätze mit Bildungsbezug oder anderen Themen.\n\n    Args:\n        params: keyword, limit\n\n    Returns:\n        Markdown-Liste gefundener Datensätze mit Dataflow-IDs\n    ",
+      "description": "Durchsucht alle OECD-Datensätze nach einem Stichwort.\n\nÜber die OECD SDMX API sind hunderte Datensätze verfügbar.\nDiese Funktion findet Datensätze mit Bildungsbezug oder anderen Themen.\n\nArgs:\n    params: keyword, limit\n\nReturns:\n    Markdown-Liste gefundener Datensätze mit Dataflow-IDs",
       "inputSchema": {
         "$defs": {
           "OECDSearchInput": {
@@ -220,7 +220,7 @@
     }
   },
   "uis_compare_countries": {
-    "hash": "5b864cb9d0de637ca65c0c20f255dd666c4ea377aedc3fcdf17bea8bc56fcf5d",
+    "hash": "dd06d00c12b439d34bf258db28919622bf640a99cc43300a9b55a521cdec152d",
     "signature": {
       "annotations": {
         "destructiveHint": false,
@@ -229,7 +229,7 @@
         "readOnlyHint": true,
         "title": "Ländervergleich UIS-Bildungsdaten"
       },
-      "description": "Vergleicht Bildungsindikatoren zwischen mehreren Ländern (UNESCO UIS).\n\n    Ideal für den direkten internationalen Vergleich: Wie steht die Schweiz\n    im Vergleich zu Finnland, Singapur und dem OECD-Durchschnitt?\n\n    Args:\n        params: indicator_id, country_codes (Liste), year (optional)\n\n    Returns:\n        Markdown-Vergleichstabelle sortiert nach Indikatorwert\n    ",
+      "description": "Vergleicht Bildungsindikatoren zwischen mehreren Ländern (UNESCO UIS).\n\nIdeal für den direkten internationalen Vergleich: Wie steht die Schweiz\nim Vergleich zu Finnland, Singapur und dem OECD-Durchschnitt?\n\nArgs:\n    params: indicator_id, country_codes (Liste), year (optional)\n\nReturns:\n    Markdown-Vergleichstabelle sortiert nach Indikatorwert",
       "inputSchema": {
         "$defs": {
           "UISCompareInput": {
@@ -292,7 +292,7 @@
     }
   },
   "uis_country_education_profile": {
-    "hash": "41722714b6754ebedf2c15f2325dcfbb528af2911694630cc6c086d4fbc657f0",
+    "hash": "6a412f3d0b431799c9eb4507e050f2f405a66d1f9324379bc18d2353d4b1dd8e",
     "signature": {
       "annotations": {
         "destructiveHint": false,
@@ -301,7 +301,7 @@
         "readOnlyHint": true,
         "title": "Bildungsprofil eines Landes (UNESCO UIS)"
       },
-      "description": "Erstellt ein umfassendes Bildungsprofil für ein Land via UNESCO UIS.\n\n    Ruft automatisch die wichtigsten Schlüsselindikatoren ab:\n    Alphabetisierung, Einschulungsraten, Abschlussquoten, Bildungsausgaben,\n    Schüler-Lehrer-Verhältnis, Geschlechterparität.\n\n    Args:\n        params: country_code (ISO Alpha-3), latest_year_only\n\n    Returns:\n        Vollständiges Markdown-Bildungsprofil mit allen Kernindikatoren\n    ",
+      "description": "Erstellt ein umfassendes Bildungsprofil für ein Land via UNESCO UIS.\n\nRuft automatisch die wichtigsten Schlüsselindikatoren ab:\nAlphabetisierung, Einschulungsraten, Abschlussquoten, Bildungsausgaben,\nSchüler-Lehrer-Verhältnis, Geschlechterparität.\n\nArgs:\n    params: country_code (ISO Alpha-3), latest_year_only\n\nReturns:\n    Vollständiges Markdown-Bildungsprofil mit allen Kernindikatoren",
       "inputSchema": {
         "$defs": {
           "UISCountryProfileInput": {
@@ -344,7 +344,7 @@
     }
   },
   "uis_get_education_data": {
-    "hash": "510d646f82e6923f8f63dcc2378f1b03f8f808825a96c7d6e2db3350ad0ed2dd",
+    "hash": "90c1cd0742cb65d6556ac7f037e84cb2075bd6f0fc29992f6fa08eabc027be9e",
     "signature": {
       "annotations": {
         "destructiveHint": false,
@@ -353,7 +353,7 @@
         "readOnlyHint": true,
         "title": "UIS-Bildungsdaten abrufen"
       },
-      "description": "Ruft Bildungsdaten von der UNESCO Institute for Statistics API ab.\n\n    Kernfunktion des Servers. Liefert international vergleichbare Daten\n    zu einem spezifischen Indikator – für ein Land oder alle Länder.\n\n    Typische Anwendungsfälle:\n      - Alphabetisierungsrate der Schweiz: indicator='LR.AG15T99', country='CHE'\n      - Bildungsausgaben OECD-Länder: indicator='XGDP.FSGOV', kein Land\n      - Schulabschlussquoten Europa: indicator='CR.1' + Jahresfilter\n      - Schüler-Lehrer-Verhältnis: indicator='PTR.1'\n\n    Args:\n        params: indicator_id (erforderlich), country_code, start_year, end_year\n\n    Returns:\n        Markdown-formatierte Tabelle oder Zeitreihe mit Daten und Metadaten\n    ",
+      "description": "Ruft Bildungsdaten von der UNESCO Institute for Statistics API ab.\n\nKernfunktion des Servers. Liefert international vergleichbare Daten\nzu einem spezifischen Indikator – für ein Land oder alle Länder.\n\nTypische Anwendungsfälle:\n  - Alphabetisierungsrate der Schweiz: indicator='LR.AG15T99', country='CHE'\n  - Bildungsausgaben OECD-Länder: indicator='XGDP.FSGOV', kein Land\n  - Schulabschlussquoten Europa: indicator='CR.1' + Jahresfilter\n  - Schüler-Lehrer-Verhältnis: indicator='PTR.1'\n\nArgs:\n    params: indicator_id (erforderlich), country_code, start_year, end_year\n\nReturns:\n    Markdown-formatierte Tabelle oder Zeitreihe mit Daten und Metadaten",
       "inputSchema": {
         "$defs": {
           "UISDataInput": {
@@ -435,7 +435,7 @@
     }
   },
   "uis_list_countries": {
-    "hash": "98c0def9c0a232e3f20915f0e0c2ddf6f9efa36cfa87e083f37e1756790b9ea1",
+    "hash": "3877f3736a790ee582c2388ae4baa8124229fe49a14a30e038d70a87281c01bb",
     "signature": {
       "annotations": {
         "destructiveHint": false,
@@ -444,7 +444,7 @@
         "readOnlyHint": true,
         "title": "UIS-Länder und Regionen auflisten"
       },
-      "description": "Listet verfügbare Länder und Regionen in der UNESCO UIS-Datenbank auf.\n\n    Gibt ISO 3166-1 Alpha-3 Codes zurück, die für Datenabfragen benötigt werden.\n    Beispiele: CHE (Schweiz), DEU (Deutschland), AUT (Österreich), FRA (Frankreich).\n\n    Neben Einzelländern sind auch regionale Aggregate verfügbar:\n    Weltregionen, Einkommensgruppen (World Bank), SDG-Regionen.\n\n    Args:\n        params: search (optional Textfilter), entity_type (optional)\n\n    Returns:\n        Markdown-Liste mit ISO-Codes und Ländernamen\n    ",
+      "description": "Listet verfügbare Länder und Regionen in der UNESCO UIS-Datenbank auf.\n\nGibt ISO 3166-1 Alpha-3 Codes zurück, die für Datenabfragen benötigt werden.\nBeispiele: CHE (Schweiz), DEU (Deutschland), AUT (Österreich), FRA (Frankreich).\n\nNeben Einzelländern sind auch regionale Aggregate verfügbar:\nWeltregionen, Einkommensgruppen (World Bank), SDG-Regionen.\n\nArgs:\n    params: search (optional Textfilter), entity_type (optional)\n\nReturns:\n    Markdown-Liste mit ISO-Codes und Ländernamen",
       "inputSchema": {
         "$defs": {
           "UISGeoUnitsInput": {
@@ -499,7 +499,7 @@
     }
   },
   "uis_list_indicators": {
-    "hash": "2413d373a2a3c64074df460c352eac1f9e40304adcd2b424431f1098e6df08cb",
+    "hash": "17e980630b289036cebad21bfbec5cad90a5f97228f6693c6adc4892394179b7",
     "signature": {
       "annotations": {
         "destructiveHint": false,
@@ -508,7 +508,7 @@
         "readOnlyHint": true,
         "title": "UIS-Indikatoren auflisten"
       },
-      "description": "Listet verfügbare Indikatoren der UNESCO Institute for Statistics auf.\n\n    Die UIS bietet über 4'000 Indikatoren zu Bildung, Wissenschaft, Kultur\n    und Kommunikation. Diese Funktion dient zur Exploration und Indikatorsuche.\n\n    Wichtige Indikator-Kategorien:\n      - Alphabetisierung (LR.*): Lese-/Schreibkompetenz nach Alter, Geschlecht\n      - Einschulungsraten (NERA.*): Netto-Einschulungsraten nach Schulstufe\n      - Schulabschlüsse (CR.*): Abschlussquoten Primar- bis Sekundarstufe\n      - Bildungsausgaben (XGDP.*, XUNIT.*): % BIP, pro Schüler\n      - Lehrerquoten (PTR.*, TRTP.*): Schüler-Lehrer-Verhältnis, Ausbildungsgrad\n\n    Args:\n        params: theme (optional), search (optional), limit\n\n    Returns:\n        Markdown-Liste mit Indikator-IDs und Beschreibungen\n    ",
+      "description": "Listet verfügbare Indikatoren der UNESCO Institute for Statistics auf.\n\nDie UIS bietet über 4'000 Indikatoren zu Bildung, Wissenschaft, Kultur\nund Kommunikation. Diese Funktion dient zur Exploration und Indikatorsuche.\n\nWichtige Indikator-Kategorien:\n  - Alphabetisierung (LR.*): Lese-/Schreibkompetenz nach Alter, Geschlecht\n  - Einschulungsraten (NERA.*): Netto-Einschulungsraten nach Schulstufe\n  - Schulabschlüsse (CR.*): Abschlussquoten Primar- bis Sekundarstufe\n  - Bildungsausgaben (XGDP.*, XUNIT.*): % BIP, pro Schüler\n  - Lehrerquoten (PTR.*, TRTP.*): Schüler-Lehrer-Verhältnis, Ausbildungsgrad\n\nArgs:\n    params: theme (optional), search (optional), limit\n\nReturns:\n    Markdown-Liste mit Indikator-IDs und Beschreibungen",
       "inputSchema": {
         "$defs": {
           "UISIndicatorsInput": {
@@ -571,7 +571,7 @@
     }
   },
   "uis_list_versions": {
-    "hash": "343f3cf0952652d9cb1001163ad1de9b01f1437a92f9e8bdfa4351c067308727",
+    "hash": "60f8e7d80ee87cbeb0c5c83122532c0bb0326012f4f9b2ac486e90e6c4f6820c",
     "signature": {
       "annotations": {
         "destructiveHint": false,
@@ -580,7 +580,7 @@
         "readOnlyHint": true,
         "title": "UIS-Datenbankversionen auflisten"
       },
-      "description": "Listet verfügbare Versionen der UNESCO UIS-Datenbank auf.\n\n    Die UIS veröffentlicht mehrmals jährlich neue Datenversionen.\n    Nützlich um sicherzustellen, dass mit den neuesten Daten gearbeitet wird.\n\n    Returns:\n        Markdown-Liste mit Versionsbezeichnungen und Publikationsdaten\n    ",
+      "description": "Listet verfügbare Versionen der UNESCO UIS-Datenbank auf.\n\nDie UIS veröffentlicht mehrmals jährlich neue Datenversionen.\nNützlich um sicherzustellen, dass mit den neuesten Daten gearbeitet wird.\n\nReturns:\n    Markdown-Liste mit Versionsbezeichnungen und Publikationsdaten",
       "inputSchema": {
         "properties": {},
         "title": "uis_list_versionsArguments",
