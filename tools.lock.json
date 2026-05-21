@@ -1,0 +1,592 @@
+{
+  "education_benchmark_countries": {
+    "hash": "eafcf73bbe0783c3e0a144c279e4f2a27bacade3237f088470beeaab5f098246",
+    "signature": {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": true,
+        "title": "Bildungsbenchmark mehrerer Länder"
+      },
+      "description": "Benchmarkt mehrere Länder auf einem Bildungsthema via UNESCO UIS.\n\n    Automatisch werden die passenden Indikatoren für den gewählten Fokus\n    ausgewählt und ein strukturierter Vergleich erstellt.\n\n    Fokus-Optionen:\n      - literacy: Alphabetisierungsraten (Erwachsene + Jugendliche)\n      - spending: Bildungsausgaben (% BIP, verschiedene Stufen)\n      - completion: Abschlussquoten (Primar, Sek I, Sek II)\n      - teachers: Schüler-Lehrer-Verhältnis + Lehrerausbildung\n      - enrollment: Einschulungsraten nach Schulstufe\n\n    Args:\n        params: country_codes, focus\n\n    Returns:\n        Vollständiger Benchmarkreport mit Tabellen für alle relevanten Indikatoren\n    ",
+      "inputSchema": {
+        "$defs": {
+          "CrossSourceInput": {
+            "additionalProperties": false,
+            "description": "Input für quellübergreifende Analysen.",
+            "properties": {
+              "country_codes": {
+                "description": "Liste von ISO Alpha-3 Codes für Bildungsvergleich, z.B. ['CHE', 'DEU', 'AUT', 'FIN', 'SGP'].",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 10,
+                "minItems": 2,
+                "title": "Country Codes",
+                "type": "array"
+              },
+              "focus": {
+                "default": "literacy",
+                "description": "Analysefokus: 'literacy' (Alphabetisierung), 'spending' (Ausgaben), 'completion' (Abschlüsse), 'teachers' (Lehrpersonen), 'enrollment' (Einschulungsraten).",
+                "pattern": "^(literacy|spending|completion|teachers|enrollment)$",
+                "title": "Focus",
+                "type": "string"
+              }
+            },
+            "required": [
+              "country_codes"
+            ],
+            "title": "CrossSourceInput",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "params": {
+            "$ref": "#/$defs/CrossSourceInput"
+          }
+        },
+        "required": [
+          "params"
+        ],
+        "title": "education_benchmark_countriesArguments",
+        "type": "object"
+      },
+      "name": "education_benchmark_countries"
+    }
+  },
+  "oecd_get_education_indicator": {
+    "hash": "a108fb26a17ec59e554f01c9c332120f7d32050103a0bc8cf0e413c5a6ab69e5",
+    "signature": {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true,
+        "title": "OECD-Bildungsindikatoren abrufen"
+      },
+      "description": "Ruft Bildungsdaten aus dem OECD Education at a Glance Report ab.\n\n    Greift auf die OECD SDMX REST API zu. Liefert strukturierte Daten\n    für OECD-Länder zu Bildungsausgaben, Einschreibungsraten, Lehrergehältern etc.\n\n    Beispiele:\n      - Bildungsausgaben Schweiz/DE/AT: dataflow='EAG_FISC', countries=['CHE','DEU','AUT']\n      - Lehrergehälter OECD: dataflow='EAG_PERS_SALARY'\n      - Beschäftigung nach Bildungsabschluss: dataflow='EAG_EMP_EDUC'\n\n    Args:\n        params: dataflow_id, countries (optional), start_period, end_period\n\n    Returns:\n        Markdown-formatierte Datentabelle oder Rohdaten-Zusammenfassung\n    ",
+      "inputSchema": {
+        "$defs": {
+          "OECDDataInput": {
+            "additionalProperties": false,
+            "description": "Input für OECD Education at a Glance Daten.",
+            "properties": {
+              "countries": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 20,
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "ISO 3166-1 Alpha-3 Ländercodes, z.B. ['CHE', 'DEU', 'FIN']. Ohne Angabe: alle verfügbaren Länder (kann grosse Datenmenge erzeugen).",
+                "title": "Countries"
+              },
+              "dataflow_id": {
+                "description": "OECD Dataflow-ID, z.B. 'EAG_FISC' (Ausgaben), 'EAG_ENRL' (Einschreibungen). Verfügbare IDs via oecd_list_education_datasets.",
+                "maxLength": 50,
+                "minLength": 3,
+                "title": "Dataflow Id",
+                "type": "string"
+              },
+              "end_period": {
+                "anyOf": [
+                  {
+                    "maxLength": 10,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Endzeitraum im SDMX-Format, z.B. '2022'.",
+                "title": "End Period"
+              },
+              "start_period": {
+                "anyOf": [
+                  {
+                    "maxLength": 10,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Startzeitraum im SDMX-Format, z.B. '2015' oder '2015-A'.",
+                "title": "Start Period"
+              }
+            },
+            "required": [
+              "dataflow_id"
+            ],
+            "title": "OECDDataInput",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "params": {
+            "$ref": "#/$defs/OECDDataInput"
+          }
+        },
+        "required": [
+          "params"
+        ],
+        "title": "oecd_get_education_indicatorArguments",
+        "type": "object"
+      },
+      "name": "oecd_get_education_indicator"
+    }
+  },
+  "oecd_list_education_datasets": {
+    "hash": "5a1c3083ca14360e3f8f41a8598d8b0caa780bfe46c98da8644119230c6ee39e",
+    "signature": {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true,
+        "title": "OECD-Bildungsdatensätze auflisten"
+      },
+      "description": "Listet verfügbare OECD Education at a Glance Datensätze auf.\n\n    Education at a Glance ist das jährliche Referenzwerk der OECD für\n    internationale Bildungsvergleiche. Es umfasst 38 OECD-Länder plus Partner.\n\n    Abgedeckte Themenbereiche:\n      - Bildungsbeteiligung und -abschlüsse (EAG_ENRL, EAG_GRAD_ENTR)\n      - Bildungsausgaben und Finanzierung (EAG_FISC)\n      - Lehrpersonal und Arbeitsbedingungen (EAG_PERS, EAG_PERS_SALARY)\n      - Bildungsrendite und Arbeitsmarkt (EAG_EMP_EDUC, EAG_EARN_RATIO)\n\n    Returns:\n        Markdown-Liste der Datensätze mit Beschreibungen und Dataflow-IDs\n    ",
+      "inputSchema": {
+        "properties": {},
+        "title": "oecd_list_education_datasetsArguments",
+        "type": "object"
+      },
+      "name": "oecd_list_education_datasets"
+    }
+  },
+  "oecd_search_datasets": {
+    "hash": "a54b8aec9331140b50c1284b289f38f7216e9571623900cc3e3b72899817bf72",
+    "signature": {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true,
+        "title": "OECD-Datensätze durchsuchen"
+      },
+      "description": "Durchsucht alle OECD-Datensätze nach einem Stichwort.\n\n    Über die OECD SDMX API sind hunderte Datensätze verfügbar.\n    Diese Funktion findet Datensätze mit Bildungsbezug oder anderen Themen.\n\n    Args:\n        params: keyword, limit\n\n    Returns:\n        Markdown-Liste gefundener Datensätze mit Dataflow-IDs\n    ",
+      "inputSchema": {
+        "$defs": {
+          "OECDSearchInput": {
+            "additionalProperties": false,
+            "description": "Input für die OECD-Datensatzsuche.",
+            "properties": {
+              "keyword": {
+                "description": "Suchbegriff für OECD-Datensätze, z.B. 'education', 'literacy', 'teachers'.",
+                "maxLength": 100,
+                "minLength": 2,
+                "title": "Keyword",
+                "type": "string"
+              },
+              "limit": {
+                "default": 20,
+                "description": "Maximale Anzahl Ergebnisse.",
+                "maximum": 100,
+                "minimum": 1,
+                "title": "Limit",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "keyword"
+            ],
+            "title": "OECDSearchInput",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "params": {
+            "$ref": "#/$defs/OECDSearchInput"
+          }
+        },
+        "required": [
+          "params"
+        ],
+        "title": "oecd_search_datasetsArguments",
+        "type": "object"
+      },
+      "name": "oecd_search_datasets"
+    }
+  },
+  "uis_compare_countries": {
+    "hash": "5b864cb9d0de637ca65c0c20f255dd666c4ea377aedc3fcdf17bea8bc56fcf5d",
+    "signature": {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true,
+        "title": "Ländervergleich UIS-Bildungsdaten"
+      },
+      "description": "Vergleicht Bildungsindikatoren zwischen mehreren Ländern (UNESCO UIS).\n\n    Ideal für den direkten internationalen Vergleich: Wie steht die Schweiz\n    im Vergleich zu Finnland, Singapur und dem OECD-Durchschnitt?\n\n    Args:\n        params: indicator_id, country_codes (Liste), year (optional)\n\n    Returns:\n        Markdown-Vergleichstabelle sortiert nach Indikatorwert\n    ",
+      "inputSchema": {
+        "$defs": {
+          "UISCompareInput": {
+            "additionalProperties": false,
+            "description": "Input für Mehrländervergleich.",
+            "properties": {
+              "country_codes": {
+                "description": "Liste von ISO Alpha-3 Codes, z.B. ['CHE', 'DEU', 'AUT', 'FIN']. Maximal 15 Länder pro Anfrage.",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 15,
+                "minItems": 2,
+                "title": "Country Codes",
+                "type": "array"
+              },
+              "indicator_id": {
+                "description": "Indikator-ID für den Vergleich, z.B. 'LR.AG15T99'.",
+                "maxLength": 100,
+                "minLength": 2,
+                "title": "Indicator Id",
+                "type": "string"
+              },
+              "year": {
+                "anyOf": [
+                  {
+                    "maximum": 2030,
+                    "minimum": 1990,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Referenzjahr für den Vergleich (neueste verfügbare Daten wenn leer).",
+                "title": "Year"
+              }
+            },
+            "required": [
+              "indicator_id",
+              "country_codes"
+            ],
+            "title": "UISCompareInput",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "params": {
+            "$ref": "#/$defs/UISCompareInput"
+          }
+        },
+        "required": [
+          "params"
+        ],
+        "title": "uis_compare_countriesArguments",
+        "type": "object"
+      },
+      "name": "uis_compare_countries"
+    }
+  },
+  "uis_country_education_profile": {
+    "hash": "41722714b6754ebedf2c15f2325dcfbb528af2911694630cc6c086d4fbc657f0",
+    "signature": {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true,
+        "title": "Bildungsprofil eines Landes (UNESCO UIS)"
+      },
+      "description": "Erstellt ein umfassendes Bildungsprofil für ein Land via UNESCO UIS.\n\n    Ruft automatisch die wichtigsten Schlüsselindikatoren ab:\n    Alphabetisierung, Einschulungsraten, Abschlussquoten, Bildungsausgaben,\n    Schüler-Lehrer-Verhältnis, Geschlechterparität.\n\n    Args:\n        params: country_code (ISO Alpha-3), latest_year_only\n\n    Returns:\n        Vollständiges Markdown-Bildungsprofil mit allen Kernindikatoren\n    ",
+      "inputSchema": {
+        "$defs": {
+          "UISCountryProfileInput": {
+            "additionalProperties": false,
+            "description": "Input für das Bildungsprofil eines Landes.",
+            "properties": {
+              "country_code": {
+                "description": "ISO 3166-1 Alpha-3 Ländercode, z.B. 'CHE' für die Schweiz.",
+                "maxLength": 10,
+                "minLength": 2,
+                "title": "Country Code",
+                "type": "string"
+              },
+              "latest_year_only": {
+                "default": true,
+                "description": "True = nur neueste verfügbare Werte; False = Zeitreihe.",
+                "title": "Latest Year Only",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "country_code"
+            ],
+            "title": "UISCountryProfileInput",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "params": {
+            "$ref": "#/$defs/UISCountryProfileInput"
+          }
+        },
+        "required": [
+          "params"
+        ],
+        "title": "uis_country_education_profileArguments",
+        "type": "object"
+      },
+      "name": "uis_country_education_profile"
+    }
+  },
+  "uis_get_education_data": {
+    "hash": "510d646f82e6923f8f63dcc2378f1b03f8f808825a96c7d6e2db3350ad0ed2dd",
+    "signature": {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true,
+        "title": "UIS-Bildungsdaten abrufen"
+      },
+      "description": "Ruft Bildungsdaten von der UNESCO Institute for Statistics API ab.\n\n    Kernfunktion des Servers. Liefert international vergleichbare Daten\n    zu einem spezifischen Indikator – für ein Land oder alle Länder.\n\n    Typische Anwendungsfälle:\n      - Alphabetisierungsrate der Schweiz: indicator='LR.AG15T99', country='CHE'\n      - Bildungsausgaben OECD-Länder: indicator='XGDP.FSGOV', kein Land\n      - Schulabschlussquoten Europa: indicator='CR.1' + Jahresfilter\n      - Schüler-Lehrer-Verhältnis: indicator='PTR.1'\n\n    Args:\n        params: indicator_id (erforderlich), country_code, start_year, end_year\n\n    Returns:\n        Markdown-formatierte Tabelle oder Zeitreihe mit Daten und Metadaten\n    ",
+      "inputSchema": {
+        "$defs": {
+          "UISDataInput": {
+            "additionalProperties": false,
+            "description": "Input für den Abruf von UIS-Bildungsdaten.",
+            "properties": {
+              "country_code": {
+                "anyOf": [
+                  {
+                    "maxLength": 10,
+                    "minLength": 2,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "ISO 3166-1 Alpha-3 Ländercode, z.B. 'CHE', 'DEU', 'AUT'. Ohne Angabe werden alle Länder zurückgegeben (kann gross sein).",
+                "title": "Country Code"
+              },
+              "end_year": {
+                "anyOf": [
+                  {
+                    "maximum": 2030,
+                    "minimum": 1970,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Endjahr der Zeitreihe, z.B. 2023.",
+                "title": "End Year"
+              },
+              "indicator_id": {
+                "description": "Indikator-ID, z.B. 'LR.AG15T99' (Alphabetisierung), 'CR.1' (Primarabschluss), 'XGDP.FSGOV' (Bildungsausgaben % BIP). Bekannte IDs via uis_list_indicators abrufen.",
+                "maxLength": 100,
+                "minLength": 2,
+                "title": "Indicator Id",
+                "type": "string"
+              },
+              "start_year": {
+                "anyOf": [
+                  {
+                    "maximum": 2030,
+                    "minimum": 1970,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Startjahr der Zeitreihe, z.B. 2010.",
+                "title": "Start Year"
+              }
+            },
+            "required": [
+              "indicator_id"
+            ],
+            "title": "UISDataInput",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "params": {
+            "$ref": "#/$defs/UISDataInput"
+          }
+        },
+        "required": [
+          "params"
+        ],
+        "title": "uis_get_education_dataArguments",
+        "type": "object"
+      },
+      "name": "uis_get_education_data"
+    }
+  },
+  "uis_list_countries": {
+    "hash": "98c0def9c0a232e3f20915f0e0c2ddf6f9efa36cfa87e083f37e1756790b9ea1",
+    "signature": {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true,
+        "title": "UIS-Länder und Regionen auflisten"
+      },
+      "description": "Listet verfügbare Länder und Regionen in der UNESCO UIS-Datenbank auf.\n\n    Gibt ISO 3166-1 Alpha-3 Codes zurück, die für Datenabfragen benötigt werden.\n    Beispiele: CHE (Schweiz), DEU (Deutschland), AUT (Österreich), FRA (Frankreich).\n\n    Neben Einzelländern sind auch regionale Aggregate verfügbar:\n    Weltregionen, Einkommensgruppen (World Bank), SDG-Regionen.\n\n    Args:\n        params: search (optional Textfilter), entity_type (optional)\n\n    Returns:\n        Markdown-Liste mit ISO-Codes und Ländernamen\n    ",
+      "inputSchema": {
+        "$defs": {
+          "UISGeoUnitsInput": {
+            "additionalProperties": false,
+            "description": "Input für die Abfrage verfügbarer Länder und Regionen.",
+            "properties": {
+              "entity_type": {
+                "anyOf": [
+                  {
+                    "maxLength": 50,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Typ der Einheit: 'COUNTRY', 'REGION', 'SDG_REGION' etc.",
+                "title": "Entity Type"
+              },
+              "search": {
+                "anyOf": [
+                  {
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Filter nach Land- oder Regionsname (z.B. 'Switzerland', 'Europe').",
+                "title": "Search"
+              }
+            },
+            "title": "UISGeoUnitsInput",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "params": {
+            "$ref": "#/$defs/UISGeoUnitsInput"
+          }
+        },
+        "required": [
+          "params"
+        ],
+        "title": "uis_list_countriesArguments",
+        "type": "object"
+      },
+      "name": "uis_list_countries"
+    }
+  },
+  "uis_list_indicators": {
+    "hash": "2413d373a2a3c64074df460c352eac1f9e40304adcd2b424431f1098e6df08cb",
+    "signature": {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true,
+        "title": "UIS-Indikatoren auflisten"
+      },
+      "description": "Listet verfügbare Indikatoren der UNESCO Institute for Statistics auf.\n\n    Die UIS bietet über 4'000 Indikatoren zu Bildung, Wissenschaft, Kultur\n    und Kommunikation. Diese Funktion dient zur Exploration und Indikatorsuche.\n\n    Wichtige Indikator-Kategorien:\n      - Alphabetisierung (LR.*): Lese-/Schreibkompetenz nach Alter, Geschlecht\n      - Einschulungsraten (NERA.*): Netto-Einschulungsraten nach Schulstufe\n      - Schulabschlüsse (CR.*): Abschlussquoten Primar- bis Sekundarstufe\n      - Bildungsausgaben (XGDP.*, XUNIT.*): % BIP, pro Schüler\n      - Lehrerquoten (PTR.*, TRTP.*): Schüler-Lehrer-Verhältnis, Ausbildungsgrad\n\n    Args:\n        params: theme (optional), search (optional), limit\n\n    Returns:\n        Markdown-Liste mit Indikator-IDs und Beschreibungen\n    ",
+      "inputSchema": {
+        "$defs": {
+          "UISIndicatorsInput": {
+            "additionalProperties": false,
+            "description": "Input für die Abfrage verfügbarer UIS-Indikatoren.",
+            "properties": {
+              "limit": {
+                "default": 50,
+                "description": "Maximale Anzahl zurückgegebener Indikatoren.",
+                "maximum": 500,
+                "minimum": 1,
+                "title": "Limit",
+                "type": "integer"
+              },
+              "search": {
+                "anyOf": [
+                  {
+                    "maxLength": 200,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Freitextsuche in Indikatorname und -beschreibung.",
+                "title": "Search"
+              },
+              "theme": {
+                "anyOf": [
+                  {
+                    "maxLength": 50,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Filter nach Thema, z.B. 'EDUCATION', 'SCIENCE', 'CULTURE'. Ohne Angabe werden alle Themen zurückgegeben.",
+                "title": "Theme"
+              }
+            },
+            "title": "UISIndicatorsInput",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "params": {
+            "$ref": "#/$defs/UISIndicatorsInput"
+          }
+        },
+        "required": [
+          "params"
+        ],
+        "title": "uis_list_indicatorsArguments",
+        "type": "object"
+      },
+      "name": "uis_list_indicators"
+    }
+  },
+  "uis_list_versions": {
+    "hash": "343f3cf0952652d9cb1001163ad1de9b01f1437a92f9e8bdfa4351c067308727",
+    "signature": {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true,
+        "title": "UIS-Datenbankversionen auflisten"
+      },
+      "description": "Listet verfügbare Versionen der UNESCO UIS-Datenbank auf.\n\n    Die UIS veröffentlicht mehrmals jährlich neue Datenversionen.\n    Nützlich um sicherzustellen, dass mit den neuesten Daten gearbeitet wird.\n\n    Returns:\n        Markdown-Liste mit Versionsbezeichnungen und Publikationsdaten\n    ",
+      "inputSchema": {
+        "properties": {},
+        "title": "uis_list_versionsArguments",
+        "type": "object"
+      },
+      "name": "uis_list_versions"
+    }
+  }
+}

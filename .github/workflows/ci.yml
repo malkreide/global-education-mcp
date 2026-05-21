@@ -28,3 +28,6 @@ jobs:
 
       - name: Run unit tests (no live API)
         run: PYTHONPATH=src pytest tests/ -v -m "not integration"
+
+      - name: Verify tool signatures + description lint
+        run: PYTHONPATH=src python scripts/tool_signatures.py ci

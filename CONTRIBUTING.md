@@ -75,6 +75,32 @@ PYTHONPATH=src pytest tests/ -v
 
 ---
 
+## Tool-Signature-Lockfile
+
+The repository pins all MCP tool signatures (name, description, input schema,
+annotations) in `tools.lock.json`. This guards against tool-poisoning / rug-pull
+supply-chain attacks (audit findings SEC-022 + SEC-015).
+
+CI runs `python scripts/tool_signatures.py ci` on every PR. The job fails if:
+
+- A tool's name, description, schema, or annotations changed without the
+  lockfile being updated, **or**
+- A description contains a suspicious prompt-injection marker
+  (e.g. `ignore previous instructions`, `act as system`, `eval the following`).
+
+**Workflow when you legitimately change a tool:**
+
+```bash
+# After editing server.py:
+PYTHONPATH=src python scripts/tool_signatures.py update
+git add tools.lock.json
+git commit  # together with the code change
+```
+
+The lockfile diff is the audit trail — reviewers should look at it explicitly.
+
+---
+
 ## Commit Message Format
 
 ```
