@@ -301,6 +301,51 @@ global-education-mcp/
 
 ---
 
+## Compliance & Datenklassifikation (Stadt Zürich)
+
+Verbindliche Klassifikation für den Einsatz im Schulamt der Stadt Zürich.
+
+### ISDS-Schutzbedarfsklassen
+
+| Dimension | Stufe | Begründung |
+|---|---|---|
+| Vertraulichkeit | öffentlich | UNESCO UIS unter [CC BY-SA 3.0 IGO](https://creativecommons.org/licenses/by-sa/3.0/igo/), OECD EaG unter öffentlichen [OECD Terms](https://www.oecd.org/termsandconditions/) |
+| Integrität | normal | Quelle ist autoritativ; lokales In-Memory-Caching TTL-basiert, niemals auf Disk |
+| Verfügbarkeit | normal | Graceful Fallback auf statische Referenzdaten bei API-Ausfall |
+| **Gesamt-Schutzbedarfsklasse** | **G1 — öffentlich** | niedrigste Klasse gemäss ISDS Stadt Zürich |
+
+- Daten-Owner: UNESCO UIS / OECD (extern)
+- System-Owner: Schulamt der Stadt Zürich
+- Verarbeitet PII: **nein**
+- DSG-/EDÖB-Relevanz: **keine** (nur anonymisierte Länder-Aggregate)
+
+### Schulamt-Klassifikation (BUI / Vertraulich / Streng Vertraulich)
+
+| Aspekt | Klassifikation |
+|---|---|
+| Tool-Output (Markdown-Tabellen, Zusammenfassungen) | **BUI** (betrieblich unkritische Information) |
+| In-Memory-TTL-Cache | BUI (gleiche Stufe wie Quelle) |
+| Strukturierte Logs (JSON auf stderr, siehe OBS-003) | BUI — nur Tool-Name, Params, Dauer; keine PII |
+| `tools.lock.json`, `audits/`-Artefakte | BUI |
+
+→ Der Server ist für jeden Schulamt-Use-Case ohne weitere Datenschutz-Freigabe einsetzbar.
+
+### Kompatibilität
+
+| Komponente | Unterstützte Version |
+|---|---|
+| MCP Protocol | 2024-11-05 |
+| MCP Python SDK | `>=1.0.0,<2.0.0` |
+| Python | 3.11, 3.12, 3.13 |
+| `httpx` | `>=0.27.0,<1.0.0` |
+| `pydantic` | `>=2.0.0,<3.0.0` |
+
+Major-Upgrades sind bewusste Entscheidungen — die oberen Schranken in
+`pyproject.toml` verhindern, dass ein transitiver Bump den Server still
+bricht. Upgrade-Pfad siehe `CHANGELOG.md`.
+
+---
+
 ## 🛡️ Sicherheit & Limiten
 
 | Aspekt | Details |
