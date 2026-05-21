@@ -138,6 +138,40 @@ Tools that have explicit graceful fallbacks (e.g. local indicator list when
 the UNESCO API is down) intentionally skip `raise_if_transient` — degraded
 data is better UX than a host-level retry that hits the same outage.
 
+### Progress reporting (audit finding SDK-003)
+
+Tools that perform more than a handful of upstream calls (multi-country
+compares, country profiles, benchmarks) accept an optional FastMCP
+`Context` parameter and emit progress events:
+
+```python
+from mcp.server.fastmcp import Context
+
+@mcp.tool(...)
+@logged_tool
+async def my_long_tool(params: MyInput, ctx: Optional[Context] = None) -> str:
+    await _ctx_info(ctx, f"Starting {len(params.items)} fetches")
+    progress = {"done": 0}
+
+    async def fetch(item):
+        try:
+            return await upstream_call(item)
+        finally:
+            progress["done"] += 1
+            await _ctx_progress(ctx, progress["done"], len(params.items), str(item))
+
+    results = await asyncio.gather(*(fetch(i) for i in params.items), return_exceptions=True)
+    ...
+```
+
+The `_ctx_*` helpers in `server.py` are no-ops when `ctx is None` (unit
+tests). Tool functions never crash because of a broken context — the
+helpers swallow any exception from `ctx.info` / `ctx.report_progress`.
+
+FastMCP detects the `Context` type annotation and auto-injects when the
+host calls the tool. It is excluded from the generated input schema, so
+adding `ctx` does **not** change the `tools.lock.json` hash.
+
 ---
 
 ## Tool-Signature-Lockfile

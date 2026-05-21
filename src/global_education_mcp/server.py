@@ -23,7 +23,7 @@ from contextlib import asynccontextmanager
 from typing import Any, Awaitable, Callable, Optional, TypeVar
 
 import httpx
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import Context, FastMCP
 from pydantic import BaseModel, ConfigDict, Field
 
 from . import api_client
@@ -49,6 +49,26 @@ from .logging_setup import configure_logging
 logger = logging.getLogger("global_education_mcp.tool")
 
 _F = TypeVar("_F", bound=Callable[..., Awaitable[Any]])
+
+
+async def _ctx_info(ctx: Optional[Context], message: str) -> None:
+    """ctx.info() if available, else no-op (Unit-Tests rufen ohne ctx auf)."""
+    if ctx is not None:
+        try:
+            await ctx.info(message)
+        except Exception:  # noqa: BLE001 - Progress darf nie den Tool-Call brechen
+            pass
+
+
+async def _ctx_progress(
+    ctx: Optional[Context], current: float, total: float, message: str = ""
+) -> None:
+    """ctx.report_progress() if available, else no-op."""
+    if ctx is not None:
+        try:
+            await ctx.report_progress(current, total, message or None)
+        except Exception:  # noqa: BLE001
+            pass
 
 
 def logged_tool(fn: _F) -> _F:
@@ -484,7 +504,9 @@ class UISCompareInput(BaseModel):
     },
 )
 @logged_tool
-async def uis_compare_countries(params: UISCompareInput) -> str:
+async def uis_compare_countries(
+    params: UISCompareInput, ctx: Optional[Context] = None
+) -> str:
     """Vergleicht Bildungsindikatoren zwischen mehreren Ländern (UNESCO UIS).
 
     Ideal für den direkten internationalen Vergleich: Wie steht die Schweiz
@@ -501,16 +523,27 @@ async def uis_compare_countries(params: UISCompareInput) -> str:
     errors: list[str] = []
 
     codes = params.country_codes[:15]
-    raw_responses = await asyncio.gather(
-        *(
-            uis_get_data(
+    await _ctx_info(
+        ctx, f"Vergleiche {len(codes)} Länder für Indikator {params.indicator_id}"
+    )
+
+    progress = {"done": 0}
+
+    async def fetch(code: str) -> Any:
+        try:
+            raw = await uis_get_data(
                 indicator=params.indicator_id,
                 geo_unit=code,
                 start_year=params.year,
                 end_year=params.year,
             )
-            for code in codes
-        ),
+        finally:
+            progress["done"] += 1
+            await _ctx_progress(ctx, progress["done"], len(codes), f"{code} fertig")
+        return raw
+
+    raw_responses = await asyncio.gather(
+        *(fetch(code) for code in codes),
         return_exceptions=True,
     )
     for code, raw in zip(codes, raw_responses):
@@ -591,7 +624,9 @@ class UISCountryProfileInput(BaseModel):
     },
 )
 @logged_tool
-async def uis_country_education_profile(params: UISCountryProfileInput) -> str:
+async def uis_country_education_profile(
+    params: UISCountryProfileInput, ctx: Optional[Context] = None
+) -> str:
     """Erstellt ein umfassendes Bildungsprofil für ein Land via UNESCO UIS.
 
     Ruft automatisch die wichtigsten Schlüsselindikatoren ab:
@@ -626,11 +661,23 @@ async def uis_country_education_profile(params: UISCountryProfileInput) -> str:
     ]
 
     errors: list[str] = []
+    await _ctx_info(
+        ctx,
+        f"Lade {len(key_indicators)} Schlüsselindikatoren für {params.country_code}",
+    )
+    progress = {"done": 0}
+
+    async def fetch(ind_id: str) -> Any:
+        try:
+            return await uis_get_data(indicator=ind_id, geo_unit=params.country_code)
+        finally:
+            progress["done"] += 1
+            await _ctx_progress(
+                ctx, progress["done"], len(key_indicators), f"{ind_id} fertig"
+            )
+
     raw_responses = await asyncio.gather(
-        *(
-            uis_get_data(indicator=ind_id, geo_unit=params.country_code)
-            for ind_id, _ in key_indicators
-        ),
+        *(fetch(ind_id) for ind_id, _ in key_indicators),
         return_exceptions=True,
     )
     for (ind_id, ind_label), raw in zip(key_indicators, raw_responses):
@@ -1001,7 +1048,9 @@ class CrossSourceInput(BaseModel):
     },
 )
 @logged_tool
-async def education_benchmark_countries(params: CrossSourceInput) -> str:
+async def education_benchmark_countries(
+    params: CrossSourceInput, ctx: Optional[Context] = None
+) -> str:
     """Benchmarkt mehrere Länder auf einem Bildungsthema via UNESCO UIS.
 
     Automatisch werden die passenden Indikatoren für den gewählten Fokus
@@ -1055,6 +1104,14 @@ async def education_benchmark_countries(params: CrossSourceInput) -> str:
         "",
     ]
 
+    total_calls = len(selected) * len(params.country_codes)
+    await _ctx_info(
+        ctx,
+        f"Benchmark {params.focus}: {len(selected)} Indikatoren × "
+        f"{len(params.country_codes)} Länder = {total_calls} Calls",
+    )
+    progress = {"done": 0}
+
     for ind_id, ind_label in selected:
         lines.append(f"### {ind_label}")
         lines.append(f"_Indikator: `{ind_id}`_")
@@ -1062,8 +1119,17 @@ async def education_benchmark_countries(params: CrossSourceInput) -> str:
         lines.append("| Rang | Land | Wert | Jahr |")
         lines.append("|------|------|------|------|")
 
+        async def _fetch_bench(code: str, _ind_id: str = ind_id) -> Any:
+            try:
+                return await uis_get_data(indicator=_ind_id, geo_unit=code)
+            finally:
+                progress["done"] += 1
+                await _ctx_progress(
+                    ctx, progress["done"], total_calls, f"{_ind_id}/{code}"
+                )
+
         raw_responses = await asyncio.gather(
-            *(uis_get_data(indicator=ind_id, geo_unit=code) for code in params.country_codes),
+            *(_fetch_bench(code) for code in params.country_codes),
             return_exceptions=True,
         )
         results: list[dict] = []

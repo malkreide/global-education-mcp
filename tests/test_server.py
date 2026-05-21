@@ -677,3 +677,110 @@ class TestLoggedToolDecorator:
                       if getattr(r, "extra_fields", {}).get("status") == "ok"
                       and getattr(r, "extra_fields", {}).get("tool") == "uis_list_indicators"]
         assert len(ok_records) >= 1
+
+
+# ─── Context Injection (SDK-003) ───────────────────────────────────────────────
+
+
+class _MockContext:
+    """Minimal stand-in fuer FastMCP Context im Unit-Test."""
+
+    def __init__(self) -> None:
+        self.infos: list[str] = []
+        self.progress: list[tuple[float, float, str | None]] = []
+
+    async def info(self, message, **_):
+        self.infos.append(message)
+
+    async def report_progress(self, current, total=None, message=None):
+        self.progress.append((current, total, message))
+
+
+class TestContextInjection:
+    """Progress + Info werden bei den Long-Running-Tools gemeldet (SDK-003)."""
+
+    @pytest.mark.asyncio
+    async def test_compare_countries_reports_per_country_progress(self):
+        ctx = _MockContext()
+        fake = {"observations": [{"value": 99.0, "year": 2023, "geoUnitName": "X"}]}
+        with patch("global_education_mcp.server.uis_get_data",
+                   new_callable=AsyncMock, return_value=fake):
+            from global_education_mcp.server import uis_compare_countries
+            await uis_compare_countries(
+                UISCompareInput(
+                    indicator_id="LR.AG15T99",
+                    country_codes=["CHE", "DEU", "FIN"],
+                ),
+                ctx=ctx,
+            )
+        assert len(ctx.progress) == 3
+        assert ctx.progress[-1][0] == 3 and ctx.progress[-1][1] == 3
+        assert any("Vergleiche" in m for m in ctx.infos)
+
+    @pytest.mark.asyncio
+    async def test_country_profile_reports_indicator_progress(self):
+        ctx = _MockContext()
+        fake = {"observations": [{"value": 5.0, "year": 2022}]}
+        with patch("global_education_mcp.server.uis_get_data",
+                   new_callable=AsyncMock, return_value=fake):
+            from global_education_mcp.server import uis_country_education_profile
+            await uis_country_education_profile(
+                UISCountryProfileInput(country_code="CHE"),
+                ctx=ctx,
+            )
+        # 10 Schluesselindikatoren -> 10 Progress-Events
+        assert len(ctx.progress) == 10
+        assert ctx.progress[-1] == (10, 10, "GPI.NERA.1 fertig")
+
+    @pytest.mark.asyncio
+    async def test_benchmark_reports_total_calls_progress(self):
+        ctx = _MockContext()
+        fake = {"observations": [{"value": 90.0, "year": 2023}]}
+        with patch("global_education_mcp.server.uis_get_data",
+                   new_callable=AsyncMock, return_value=fake):
+            from global_education_mcp.server import education_benchmark_countries
+            await education_benchmark_countries(
+                CrossSourceInput(country_codes=["CHE", "DEU", "FIN"], focus="literacy"),
+                ctx=ctx,
+            )
+        # 2 Indikatoren (literacy) x 3 Laender = 6 Calls
+        assert len(ctx.progress) == 6
+        assert ctx.progress[-1][0] == 6 and ctx.progress[-1][1] == 6
+
+    @pytest.mark.asyncio
+    async def test_tools_work_without_ctx(self):
+        """Backward-compat: Tests, die ctx weglassen, muessen weiter funktionieren."""
+        fake = {"observations": [{"value": 99.0, "year": 2023}]}
+        with patch("global_education_mcp.server.uis_get_data",
+                   new_callable=AsyncMock, return_value=fake):
+            from global_education_mcp.server import uis_compare_countries
+            # Ohne ctx-Argument -> Default None, kein crash
+            result = await uis_compare_countries(
+                UISCompareInput(
+                    indicator_id="LR.AG15T99",
+                    country_codes=["CHE", "DEU"],
+                )
+            )
+            assert isinstance(result, str)
+
+    @pytest.mark.asyncio
+    async def test_ctx_exception_does_not_break_tool(self):
+        """Eine kaputte ctx.info darf den Tool-Call nicht zerlegen."""
+        class BrokenCtx:
+            async def info(self, *a, **kw):
+                raise RuntimeError("ctx is broken")
+            async def report_progress(self, *a, **kw):
+                raise RuntimeError("ctx is broken")
+
+        fake = {"observations": [{"value": 99.0, "year": 2023}]}
+        with patch("global_education_mcp.server.uis_get_data",
+                   new_callable=AsyncMock, return_value=fake):
+            from global_education_mcp.server import uis_compare_countries
+            result = await uis_compare_countries(
+                UISCompareInput(
+                    indicator_id="LR.AG15T99",
+                    country_codes=["CHE", "DEU"],
+                ),
+                ctx=BrokenCtx(),
+            )
+            assert isinstance(result, str)  # Tool liefert trotzdem normal
