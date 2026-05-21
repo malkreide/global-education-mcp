@@ -1,0 +1,468 @@
+{
+  "audit_meta": {
+    "server_name": "global-education-mcp",
+    "run_id": "2026-05-21T094452-Z-global-education-mcp",
+    "started_at": "2026-05-21T09:44:52.894204+00:00",
+    "timezone_offset": "Z",
+    "skill_version": "1.0.0",
+    "output_dir": "audits/2026-05-21T094452-Z-global-education-mcp",
+    "catalog_hash": "091f446b27965044ce658a1d5f4b2cabe2b0ab5661dcc1a53b6be8f1f2e093c0",
+    "catalog_dir": "/tmp/mcp-audit-skill/checks"
+  },
+  "results": {
+    "ARCH-001": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "medium",
+      "evidence": [
+        "server.py:88 — @mcp.tool(name=\"uis_list_indicators\") — snake_case",
+        "server.py:192 — @mcp.tool(name=\"uis_list_countries\") — snake_case",
+        "server.py:808 — @mcp.tool(name=\"oecd_search_datasets\") — snake_case durchgängig auf allen 10 Tools"
+      ],
+      "gaps": []
+    },
+    "ARCH-002": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "medium",
+      "evidence": [
+        "server.py:97-115 — uis_list_indicators-Docstring listet Use-Cases (Exploration, Indikatorsuche) + Kategorien (Alphabetisierung, Einschulung, Schulabschlüsse)",
+        "server.py:399-410 — uis_compare_countries-Docstring nennt konkretes Beispiel (Schweiz vs Finnland/Singapur/OECD)",
+        "server.py:312-329 — uis_get_education_data nennt 4 typische Anwendungsfälle inkl. Indikator-Beispielen"
+      ],
+      "gaps": []
+    },
+    "ARCH-003": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "medium",
+      "evidence": [
+        "server.py:149-168 — Bei API-Fehler Fallback auf lokale UNESCO_EDUCATION_INDICATORS-Tabelle mit handle_api_error-Hinweis",
+        "server.py:248-262 — uis_list_countries: bei API-Fehler statische ISO-Code-Liste (CHE/DEU/AUT/...) statt leerer Response",
+        "server.py:132 — \"_Keine Indikatoren gefunden für Thema='{params.theme}'._\" — kontextuelle Leer-Antwort statt nackter Leere"
+      ],
+      "gaps": []
+    },
+    "ARCH-004": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "high",
+      "evidence": [
+        "server.py:1050-1056 — main() reads MCP_TRANSPORT env var, gleicher Code für stdio + sse",
+        "server.py:40-55 — Server-Logik (mcp = FastMCP(...)) ist transport-agnostisch definiert"
+      ],
+      "gaps": []
+    },
+    "ARCH-005": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "critical",
+      "evidence": [
+        "grep ergibt 0 Treffer für API_KEY/SECRET/TOKEN/PASSWORD in src/",
+        "Nur Konfigurations-Env-Vars (MCP_HOST/PORT/MCP_TRANSPORT) ohne Default-Secrets",
+        "README.md:290 dokumentiert ausdrücklich \"No API keys required — public APIs\""
+      ],
+      "gaps": []
+    },
+    "ARCH-006": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "high",
+      "evidence": [
+        "10 Tools gesamt: 5 Discovery (list_indicators/countries/versions/datasets/search) + 5 Use-Case (get_data/compare/profile/benchmark/get_indicator)",
+        "server.py:489-563 — uis_country_education_profile bündelt 10 Schlüsselindikatoren in einem Aufruf statt 10 atomare Calls",
+        "server.py:885-993 — education_benchmark_countries ist Cross-Source-Tool (UNESCO+OECD aggregiert)"
+      ],
+      "gaps": []
+    },
+    "ARCH-007": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "medium",
+      "evidence": [
+        "api_client.py:71-94 — http_get_json/text als interne Composability-Helpers, nicht als MCP-Tools exponiert",
+        "Tools wie uis_country_education_profile rufen intern 10× uis_get_data, exponieren aber nur ein atomares Tool"
+      ],
+      "gaps": []
+    },
+    "ARCH-008": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "medium",
+      "evidence": [
+        "10× @mcp.tool — server.py:87, 191, 302, 389, 489, 565, 604, 690, 807, 885",
+        "2× @mcp.resource — server.py:999 (education://indicators/unesco), server.py:1008 (education://datasets/oecd)",
+        "2× @mcp.prompt — server.py:1020 (bildungsvergleich_schweiz), server.py:1033 (sdg4_monitoring)"
+      ],
+      "gaps": []
+    },
+    "ARCH-009": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "high",
+      "evidence": [
+        "server.py:89-95 — alle 4 Annotations gesetzt: readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=True",
+        "Identische Annotations-Block auf allen 10 Tools (server.py:193-198, 304-309, ..., 887-893)",
+        "Semantisch korrekt: read-only data fetch, idempotent (gleiche Inputs → gleiche Outputs), openWorld (externe APIs)"
+      ],
+      "gaps": []
+    },
+    "ARCH-011": {
+      "status": "pass",
+      "category": "arch",
+      "severity": "medium",
+      "evidence": [
+        "src-Layout: src/global_education_mcp/{__init__.py, server.py, api_client.py}",
+        "tests/-Verzeichnis: test_server.py (557 LOC) + test_extended_scenarios.py (1045 LOC)",
+        "README.de.md vorhanden (zusätzlich zu README.md)",
+        "pyproject.toml mit hatchling-Build, Python ≥3.11"
+      ],
+      "gaps": []
+    },
+    "ARCH-012": {
+      "status": "partial",
+      "category": "arch",
+      "severity": "medium",
+      "evidence": [
+        "pyproject.toml:7 — version = \"0.2.0\" und __init__.py:12 — __version__ = \"0.2.0\" konsistent",
+        "pyproject.toml:23 — \"mcp[cli]>=1.0.0\" — Mindest-SDK-Version gepinnt"
+      ],
+      "gaps": [
+        "Keine CHANGELOG.md im Repo (README.md:261 referenziert sie, aber Datei fehlt — Doku-Lüge)",
+        "Kein protocolVersion-Pinning sichtbar (FastMCP-Default wird genutzt — bei MCP-Spec-Bumps unkontrolliert)"
+      ]
+    },
+    "CH-005": {
+      "status": "partial",
+      "category": "ch",
+      "severity": "high",
+      "evidence": [
+        "Datenklasse = \"Public Open Data\" (UNESCO+OECD aggregierte Länderstatistiken) — formal niedrigste ISDS-Stufe"
+      ],
+      "gaps": [
+        "Kein expliziter ISDS-Schutzbedarfsklassen-Eintrag in README/CONTRIBUTING (\"unklassiert/intern/vertraulich/geheim\")",
+        "Schulamt-Kontext (stadt_zuerich_context=true) verlangt formelle Klassifikation auch bei Public Data"
+      ]
+    },
+    "CH-006": {
+      "status": "partial",
+      "category": "ch",
+      "severity": "high",
+      "evidence": [
+        "README.md:286 — \"No personal data — only aggregated country-level statistics\" → faktisch \"unklassiert/BUI\""
+      ],
+      "gaps": [
+        "Keine explizite Klassifikation nach Schulamt-Schema (BUI/Vertraulich/Streng-Vertraulich) in der Doku",
+        "Empfehlung: README-Sektion \"Datenklassifikation Schulamt\" mit Mapping ergänzen"
+      ]
+    },
+    "OBS-001": {
+      "status": "partial",
+      "category": "obs",
+      "severity": "high",
+      "evidence": [
+        "server.py: 0 try/except mit raise — alle Tool-Fehler werden als formatierte Text-Strings zurückgegeben (kein MCP-Protocol-Error-Path)",
+        "api_client.py:210-228 — handle_api_error() unterscheidet HTTPStatusError/TimeoutException/ConnectError und gibt user-facing Strings zurück"
+      ],
+      "gaps": [
+        "Trennung von Protocol-Errors (sollten MCP-Errors raisen) vs. Execution-Errors (als Tool-Result zurückgeben) ist nicht bewusst implementiert — aktuell wird alles als Result zurückgegeben",
+        "Bei Pydantic-Validation-Errors greift implizit FastMCP, ist aber nirgends dokumentiert"
+      ]
+    },
+    "OBS-002": {
+      "status": "pass",
+      "category": "obs",
+      "severity": "high",
+      "evidence": [
+        "api_client.py:223 — `e.response.text[:200]` — Truncation gegen Massive-Response-Leak",
+        "api_client.py:228 — `type(e).__name__: str(e)[:200]` — kein Stacktrace, keine internal paths",
+        "Keine SQL/DB im Code — Risiko für SQL-Error-Leak nicht vorhanden"
+      ],
+      "gaps": []
+    },
+    "OBS-003": {
+      "status": "fail",
+      "category": "obs",
+      "severity": "medium",
+      "evidence": [
+        "api_client.py:12 — `logger = logging.getLogger(__name__)` existiert, aber wird NIRGENDS aufgerufen (0 logger.info/warning/error/debug-Calls in der gesamten Codebase)"
+      ],
+      "gaps": [
+        "Kein Structured Logging (kein JSON-Formatter, kein structlog, kein RFC 5424 Severity-Mapping)",
+        "Kein logging.basicConfig() in main() — Logger ist faktisch tot",
+        "Empfehlung: structlog + JSON-Formatter + INFO-Logs für jeden Tool-Call mit (tool_name, params_hash, duration_ms, status)"
+      ]
+    },
+    "OBS-004": {
+      "status": "pass",
+      "category": "obs",
+      "severity": "critical",
+      "evidence": [
+        "grep nach `print(` in src/ → 0 Treffer (kein stdout-Garbage)",
+        "FastMCP handhabt stdio-Protocol-Framing intern; stdout reserviert für MCP-Messages"
+      ],
+      "gaps": []
+    },
+    "OPS-001": {
+      "status": "pass",
+      "category": "ops",
+      "severity": "high",
+      "evidence": [
+        "tests/test_server.py (557 LOC) + tests/test_extended_scenarios.py (1045 LOC) — 113 Tests laut README:307",
+        "pyproject.toml:69 — pytest marker `integration: Live-API-Tests gegen echte Endpunkte (deselect mit: -m 'not integration')`",
+        ".github/workflows/ci.yml:30 — CI läuft `pytest -m \"not integration\"` (Unit-only, kein Live-API)"
+      ],
+      "gaps": []
+    },
+    "OPS-002": {
+      "status": "pass",
+      "category": "ops",
+      "severity": "medium",
+      "evidence": [
+        "README.md (EN) + README.de.md (DE) — bilingual",
+        "README.md:213-225 — ASCII-Architektur-Diagramm (Claude/MCP/APIs)",
+        "README.md:281-294 — \"Safety & Limits\"-Sektion mit Rate-Limits, Caching, Timeouts, Lizenzen",
+        "README.md:270-277 — \"Known Limitations\"-Sektion explizit"
+      ],
+      "gaps": []
+    },
+    "OPS-003": {
+      "status": "pass",
+      "category": "ops",
+      "severity": "high",
+      "evidence": [
+        "Alle 10 Tools sind read-only (annotations.readOnlyHint=True, destructiveHint=False)",
+        "pyproject.toml:14 — \"Development Status :: 3 - Alpha\" + Version 0.2.0 — saubere Phase-1-Position (Read-only first)"
+      ],
+      "gaps": []
+    },
+    "SCALE-002": {
+      "status": "partial",
+      "category": "scale",
+      "severity": "high",
+      "evidence": [
+        "api_client.py:67 — `TIMEOUT = httpx.Timeout(30.0, connect=10.0)` — globaler Timeout für alle externen Calls"
+      ],
+      "gaps": [
+        "Keine Concurrent-Request-Limits (Semaphore o.ä.) bei uis_compare_countries (server.py:415 — sequenzielle await-Schleife für bis zu 15 Länder, aber kein Bulk-Limit)",
+        "Bei dual-Transport ohne reverse-proxy keine LB/Backpressure-Konfiguration"
+      ]
+    },
+    "SCALE-005": {
+      "status": "n/a",
+      "category": "scale",
+      "severity": "medium",
+      "evidence": [
+        "Kein MCP-Gateway konfiguriert — Server wird direkt von Claude Desktop via stdio konsumiert"
+      ],
+      "gaps": []
+    },
+    "SDK-001": {
+      "status": "fail",
+      "category": "sdk",
+      "severity": "high",
+      "evidence": [
+        "grep ergibt 0 Treffer für `lifespan|AsyncExitStack|asynccontextmanager` im gesamten src/"
+      ],
+      "gaps": [
+        "Kein FastMCP lifespan-Context-Manager — httpx.AsyncClient wird in jedem http_get_json/text neu erstellt (api_client.py:78 + 90) statt einmalig im Lifespan zu initialisieren",
+        "Performance-Impact: pro Tool-Call neuer Connection-Pool/TLS-Handshake; potenziell 10x langsamer als nötig",
+        "Empfehlung: `@asynccontextmanager async def lifespan(server): client = httpx.AsyncClient(...); yield {\"http\": client}; await client.aclose()` und Client via FastMCP-Context injizieren"
+      ]
+    },
+    "SDK-002": {
+      "status": "pass",
+      "category": "sdk",
+      "severity": "medium",
+      "evidence": [
+        "server.py:63-84 — UISIndicatorsInput(BaseModel) mit ConfigDict(extra=\"forbid\"), min/max_length, ge/le auf Feldern",
+        "Alle 10 Tool-Inputs sind Pydantic v2 BaseModel — server.py:63, 174, 268, 363, 472, 605, 698, 815, 893",
+        "pyproject.toml:25 — \"pydantic>=2.0.0\" gepinnt"
+      ],
+      "gaps": []
+    },
+    "SDK-003": {
+      "status": "fail",
+      "category": "sdk",
+      "severity": "medium",
+      "evidence": [
+        "Keine Context-Injektion in einem der 10 Tools (keine `ctx: Context`-Parameter, kein ctx.info/report_progress)"
+      ],
+      "gaps": [
+        "uis_compare_countries (server.py:399) und education_benchmark_countries (server.py:885) iterieren über bis zu 15 Länder × 2 Quellen — ideale Kandidaten für ctx.report_progress",
+        "uis_country_education_profile (server.py:489) führt 10 sequenzielle API-Calls aus — sollte ctx.info() pro Indikator loggen"
+      ]
+    },
+    "SDK-004": {
+      "status": "pass",
+      "category": "sdk",
+      "severity": "high",
+      "evidence": [
+        "Alle Tools deklarieren explizit `-> str` (Markdown-String-Returns)",
+        "FastMCP wandelt str → TextContent automatisch — protokollkonform"
+      ],
+      "gaps": []
+    },
+    "SEC-004": {
+      "status": "pass",
+      "category": "sec",
+      "severity": "critical",
+      "evidence": [
+        "api_client.py:16-17 — UNESCO_BASE_URL=\"https://...\", OECD_BASE_URL=\"https://...\" hardcoded mit https://",
+        "api_client.py:71-94 — http_get_json/text bauen URLs nur aus den BASE_URLs + Pfaden; keine user-supplied URLs",
+        "Keine geoUnit/indicator-Parameter gehen in den URL-Pfad (nur in Query-String) — kein Path-Traversal-Vektor"
+      ],
+      "gaps": []
+    },
+    "SEC-005": {
+      "status": "pass",
+      "category": "sec",
+      "severity": "high",
+      "evidence": [
+        "Keine API-Keys/Tokens in pyproject.toml, claude_desktop_config.json oder src/",
+        "README.md:290 — \"No API keys required — both UNESCO UIS and OECD SDMX are publicly accessible\""
+      ],
+      "gaps": []
+    },
+    "SEC-006": {
+      "status": "partial",
+      "category": "sec",
+      "severity": "high",
+      "evidence": [
+        "server.py:1050-1056 — main() defaultet auf stdio (`MCP_TRANSPORT=stdio`)",
+        "claude_desktop_config.json — nutzt stdio (`uvx global-education-mcp` ohne Transport-Flag)"
+      ],
+      "gaps": [
+        "server.py:53-54 — host=\"0.0.0.0\" Default → bei MCP_TRANSPORT=sse bindet Server auf alle Interfaces (Netzwerk-exponiert)",
+        "Kein Hinweis im Code/README, dass SSE-Mode für lokalen Use-Case ungeeignet ist; \"Cloud Deployment\"-Sektion (README.md:121) empfiehlt SSE ohne TLS-/Auth-Warnung"
+      ]
+    },
+    "SEC-007": {
+      "status": "fail",
+      "category": "sec",
+      "severity": "high",
+      "evidence": [
+        "Kein Dockerfile, kein docker-compose.yml, keine Container-Konfiguration im Repo"
+      ],
+      "gaps": [
+        "Bei Cloud-Deployment via SSE (README.md:121) wird keine Sandboxing-Strategie dokumentiert",
+        "Empfehlung: Dockerfile mit non-root USER, --read-only filesystem, dropped capabilities; oder explizite README-Sektion \"Run in container\""
+      ]
+    },
+    "SEC-008": {
+      "status": "pass",
+      "category": "sec",
+      "severity": "medium",
+      "evidence": [
+        "claude_desktop_config.json zeigt explizit den Server-Eintrag → User muss aktiv installieren und konfigurieren (Consent durch Aktion)",
+        "README.md:91-119 dokumentiert den Installations- und Config-Pfad transparent vor erster Verwendung"
+      ],
+      "gaps": []
+    },
+    "SEC-009": {
+      "status": "n/a",
+      "category": "sec",
+      "severity": "critical",
+      "evidence": [
+        "auth_model=none — kein Auth-Flow vorhanden, Check nicht aussagekräftig anwendbar"
+      ],
+      "gaps": []
+    },
+    "SEC-013": {
+      "status": "n/a",
+      "category": "sec",
+      "severity": "high",
+      "evidence": [
+        "Keine API-Keys nötig — Check Storage-Mechanismus für API-Keys nicht anwendbar"
+      ],
+      "gaps": []
+    },
+    "SEC-014": {
+      "status": "n/a",
+      "category": "sec",
+      "severity": "medium",
+      "evidence": [
+        "Kein MCP-Gateway im Setup — Allow-Listing per Gateway nicht anwendbar"
+      ],
+      "gaps": []
+    },
+    "SEC-015": {
+      "status": "partial",
+      "category": "sec",
+      "severity": "medium",
+      "evidence": [
+        "Tool-Descriptions sind explizit dokumentiert und reviewbar (server.py docstrings + annotations)"
+      ],
+      "gaps": [
+        "Keine automatische Tool-Poisoning-Detection (keine Validierung gegen unerwartete Tool-Description-Changes zwischen Versionen)",
+        "Empfehlung: CI-Step der die Tool-Hashes (name + description + schema) gegen einen committed Snapshot prüft"
+      ]
+    },
+    "SEC-016": {
+      "status": "n/a",
+      "category": "sec",
+      "severity": "critical",
+      "evidence": [
+        "Kein OAuth, keine Session-Cookies — Check nicht anwendbar"
+      ],
+      "gaps": []
+    },
+    "SEC-018": {
+      "status": "pass",
+      "category": "sec",
+      "severity": "high",
+      "evidence": [
+        "Alle 10 Tool-Inputs nutzen `ConfigDict(str_strip_whitespace=True, extra=\"forbid\")` — strict mode (server.py:66, 177, 271, 366, 475, 608, 701, 818, 896)",
+        "Field-Constraints: min_length/max_length auf Strings (server.py:72, 78, 182, 187, 278, 286), ge/le auf Integers (server.py:83, 291, 297, 384)",
+        "Listen-Constraints: min_length=2, max_length=15 auf country_codes (server.py:378-379)"
+      ],
+      "gaps": []
+    },
+    "SEC-019": {
+      "status": "pass",
+      "category": "sec",
+      "severity": "critical",
+      "evidence": [
+        "Server liest extern (UNESCO/OECD-HTTPS-GETs) — Read-only",
+        "Schreibt NICHTS (keine DB, keine Dateien, kein Email, keine MCP-Bridge zu schreibenden Servern)",
+        "Annotations: alle 10 Tools `readOnlyHint=True, destructiveHint=False`"
+      ],
+      "gaps": []
+    },
+    "SEC-020": {
+      "status": "pass",
+      "category": "sec",
+      "severity": "critical",
+      "evidence": [
+        "grep `os.system|subprocess|shell=True|eval(|exec(|pickle.load` in src/ → 0 Treffer",
+        "Einzige externe Operation: httpx-GET-Requests auf 2 hardcoded HTTPS-URLs (api_client.py:16-17)"
+      ],
+      "gaps": []
+    },
+    "SEC-021": {
+      "status": "pass",
+      "category": "sec",
+      "severity": "high",
+      "evidence": [
+        "Code-Layer-Allow-List: api_client.py:16-17 — nur 2 Domains hardcoded (api.uis.unesco.org, sdmx.oecd.org)",
+        "Keine user-supplied URL-Inputs; kein dynamischer Domain-Build"
+      ],
+      "gaps": [
+        "Network-Layer-Allow-List (firewall/egress-policy) nicht dokumentiert — bei Container-Deployment empfohlen"
+      ]
+    },
+    "SEC-022": {
+      "status": "fail",
+      "category": "sec",
+      "severity": "high",
+      "evidence": [
+        "Keine Tool-Hash-Pinning-Mechanik im Repo",
+        "Keine Namespace-Präfixe an Tool-Namen (uis_/oecd_/education_ sind semantische Präfixe, kein Rug-Pull-Schutz)"
+      ],
+      "gaps": [
+        "Empfehlung: SHA-256-Hash über (tool_name + description + input_schema) pro Tool, committed im Repo (tools.lock.json); CI bricht bei Hash-Mismatch nach Version-Bump außer expliziter Snapshot-Update",
+        "Optional: tools-Namespace-Präfix wie `globaledu.uis_get_education_data` für Multi-Server-Setups"
+      ]
+    }
+  }
+}

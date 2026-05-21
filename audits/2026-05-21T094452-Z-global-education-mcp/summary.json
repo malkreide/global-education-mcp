@@ -1,0 +1,182 @@
+{
+  "audit_meta": {
+    "server_name": "global-education-mcp",
+    "run_id": "2026-05-21T094452-Z-global-education-mcp",
+    "started_at": "2026-05-21T09:44:52.894204+00:00",
+    "timezone_offset": "Z",
+    "skill_version": "1.0.0",
+    "output_dir": "audits/2026-05-21T094452-Z-global-education-mcp",
+    "catalog_hash": "091f446b27965044ce658a1d5f4b2cabe2b0ab5661dcc1a53b6be8f1f2e093c0",
+    "catalog_dir": "/tmp/mcp-audit-skill/checks"
+  },
+  "totals": {
+    "checks_evaluated": 41,
+    "applicable": 36,
+    "by_status": {
+      "pass": 24,
+      "fail": 5,
+      "partial": 7,
+      "todo": 0,
+      "n/a": 5
+    },
+    "by_severity_among_findings": {
+      "critical": 0,
+      "high": 8,
+      "medium": 4,
+      "low": 0
+    },
+    "by_category": {
+      "arch": {
+        "pass": 10,
+        "fail": 0,
+        "partial": 1,
+        "todo": 0,
+        "n/a": 0
+      },
+      "ch": {
+        "pass": 0,
+        "fail": 0,
+        "partial": 2,
+        "todo": 0,
+        "n/a": 0
+      },
+      "obs": {
+        "pass": 2,
+        "fail": 1,
+        "partial": 1,
+        "todo": 0,
+        "n/a": 0
+      },
+      "ops": {
+        "pass": 3,
+        "fail": 0,
+        "partial": 0,
+        "todo": 0,
+        "n/a": 0
+      },
+      "scale": {
+        "pass": 0,
+        "fail": 0,
+        "partial": 1,
+        "todo": 0,
+        "n/a": 1
+      },
+      "sdk": {
+        "pass": 2,
+        "fail": 2,
+        "partial": 0,
+        "todo": 0,
+        "n/a": 0
+      },
+      "sec": {
+        "pass": 7,
+        "fail": 2,
+        "partial": 2,
+        "todo": 0,
+        "n/a": 4
+      }
+    }
+  },
+  "findings": {
+    "policy": "fail-or-partial",
+    "policy_statuses": [
+      "fail",
+      "partial"
+    ],
+    "expected_count": 12,
+    "expected_ids": [
+      "ARCH-012",
+      "CH-005",
+      "CH-006",
+      "OBS-001",
+      "OBS-003",
+      "SCALE-002",
+      "SDK-001",
+      "SDK-003",
+      "SEC-006",
+      "SEC-007",
+      "SEC-015",
+      "SEC-022"
+    ],
+    "details": [
+      {
+        "check_id": "ARCH-012",
+        "category": "arch",
+        "severity": "medium",
+        "status": "partial"
+      },
+      {
+        "check_id": "CH-005",
+        "category": "ch",
+        "severity": "high",
+        "status": "partial"
+      },
+      {
+        "check_id": "CH-006",
+        "category": "ch",
+        "severity": "high",
+        "status": "partial"
+      },
+      {
+        "check_id": "OBS-001",
+        "category": "obs",
+        "severity": "high",
+        "status": "partial"
+      },
+      {
+        "check_id": "OBS-003",
+        "category": "obs",
+        "severity": "medium",
+        "status": "fail"
+      },
+      {
+        "check_id": "SCALE-002",
+        "category": "scale",
+        "severity": "high",
+        "status": "partial"
+      },
+      {
+        "check_id": "SDK-001",
+        "category": "sdk",
+        "severity": "high",
+        "status": "fail"
+      },
+      {
+        "check_id": "SDK-003",
+        "category": "sdk",
+        "severity": "medium",
+        "status": "fail"
+      },
+      {
+        "check_id": "SEC-006",
+        "category": "sec",
+        "severity": "high",
+        "status": "partial"
+      },
+      {
+        "check_id": "SEC-007",
+        "category": "sec",
+        "severity": "high",
+        "status": "fail"
+      },
+      {
+        "check_id": "SEC-015",
+        "category": "sec",
+        "severity": "medium",
+        "status": "partial"
+      },
+      {
+        "check_id": "SEC-022",
+        "category": "sec",
+        "severity": "high",
+        "status": "fail"
+      }
+    ]
+  },
+  "production_ready": false,
+  "blocking_findings": [
+    "SDK-001",
+    "SEC-007",
+    "SEC-022"
+  ]
+}
