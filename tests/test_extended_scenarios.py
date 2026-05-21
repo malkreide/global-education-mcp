@@ -508,15 +508,23 @@ class TestResilienceAndFailureCascades:
             assert isinstance(result, str)
 
     @pytest.mark.asyncio
-    async def test_oecd_indicator_with_timeout_returns_helpful_message(self):
-        """OECD-Timeout soll hilfreiche Fehlermeldung mit Dataflow-ID liefern."""
+    async def test_oecd_indicator_with_timeout_raises_mcp_error(self):
+        """OECD-Timeout ist ein transienter Fehler -> McpError (OBS-001).
+
+        Seit dem OBS-001-Fix raisen Tools fuer 5xx/Timeout/Connect ein
+        McpError, damit der Host retryen kann. 4xx bleibt Tool-Result-Text.
+        Diese Semantik wird hier explizit geprueft.
+        """
+        from mcp.shared.exceptions import McpError
+
         with patch("global_education_mcp.server.oecd_get_education_data",
                    side_effect=httpx.TimeoutException("Timeout")):
-            result = await oecd_get_education_indicator(
-                OECDDataInput(dataflow_id="EAG_FISC", countries=["CHE"])
-            )
-            assert "EAG_FISC" in result  # Kontext bleibt erhalten
-            assert isinstance(result, str)
+            with pytest.raises(McpError) as exc_info:
+                await oecd_get_education_indicator(
+                    OECDDataInput(dataflow_id="EAG_FISC", countries=["CHE"])
+                )
+            # Kontext bleibt in der Error-Message erhalten (Debug-Hinweis).
+            assert "EAG_FISC" in str(exc_info.value)
 
     @pytest.mark.asyncio
     async def test_uis_versions_api_failure_returns_string(self):

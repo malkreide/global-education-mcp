@@ -14,10 +14,13 @@ Entwickelt von: Schulamt der Stadt Zürich.
 """
 
 import asyncio
+import functools
 import json
+import logging
 import os
+import time
 from contextlib import asynccontextmanager
-from typing import Optional
+from typing import Any, Awaitable, Callable, Optional, TypeVar
 
 import httpx
 from mcp.server.fastmcp import FastMCP
@@ -35,11 +38,63 @@ from .api_client import (
     oecd_get_dataflows,
     oecd_get_education_data,
     oecd_search_education_datasets,
+    raise_if_transient,
     uis_get_data,
     uis_get_geo_units,
     uis_get_indicators,
     uis_get_versions,
 )
+from .logging_setup import configure_logging
+
+logger = logging.getLogger("global_education_mcp.tool")
+
+_F = TypeVar("_F", bound=Callable[..., Awaitable[Any]])
+
+
+def logged_tool(fn: _F) -> _F:
+    """Wickelt eine MCP-Tool-Funktion mit strukturiertem Call-Logging.
+
+    Loggt pro Aufruf eine JSON-Zeile mit (tool, duration_ms, status,
+    error_class). Erhaelt Signatur + __doc__ via functools.wraps, damit
+    FastMCP weiterhin die richtige inputSchema/description ableiten kann
+    und der tools.lock.json-Hash stabil bleibt.
+
+    Adressiert Audit-Finding OBS-003 (Structured Logging).
+    """
+
+    @functools.wraps(fn)
+    async def wrapper(*args: Any, **kwargs: Any) -> Any:
+        start = time.monotonic()
+        try:
+            result = await fn(*args, **kwargs)
+        except Exception as e:
+            duration_ms = int((time.monotonic() - start) * 1000)
+            logger.error(
+                "tool_call",
+                extra={
+                    "extra_fields": {
+                        "tool": fn.__name__,
+                        "duration_ms": duration_ms,
+                        "status": "error",
+                        "error_class": type(e).__name__,
+                    }
+                },
+            )
+            raise
+        duration_ms = int((time.monotonic() - start) * 1000)
+        logger.info(
+            "tool_call",
+            extra={
+                "extra_fields": {
+                    "tool": fn.__name__,
+                    "duration_ms": duration_ms,
+                    "status": "ok",
+                }
+            },
+        )
+        return result
+
+    return wrapper  # type: ignore[return-value]
 
 
 @asynccontextmanager
@@ -119,6 +174,7 @@ class UISIndicatorsInput(BaseModel):
         "openWorldHint": True,
     },
 )
+@logged_tool
 async def uis_list_indicators(params: UISIndicatorsInput) -> str:
     """Listet verfügbare Indikatoren der UNESCO Institute for Statistics auf.
 
@@ -223,6 +279,7 @@ class UISGeoUnitsInput(BaseModel):
         "openWorldHint": True,
     },
 )
+@logged_tool
 async def uis_list_countries(params: UISGeoUnitsInput) -> str:
     """Listet verfügbare Länder und Regionen in der UNESCO UIS-Datenbank auf.
 
@@ -334,6 +391,7 @@ class UISDataInput(BaseModel):
         "openWorldHint": True,
     },
 )
+@logged_tool
 async def uis_get_education_data(params: UISDataInput) -> str:
     """Ruft Bildungsdaten von der UNESCO Institute for Statistics API ab.
 
@@ -379,6 +437,10 @@ async def uis_get_education_data(params: UISDataInput) -> str:
             )
 
     except Exception as e:
+        # Transiente Upstream-Fehler (5xx/Timeout/Connect) als MCP-Protocol-
+        # Error raisen, damit der Host retryen kann. 4xx + andere Fehler
+        # als Tool-Result-Text (LLM kann sich anpassen).
+        raise_if_transient(e, context=f"uis_get_data({params.indicator_id})")
         return handle_api_error(e, context=f"uis_get_data({params.indicator_id})")
 
 
@@ -421,6 +483,7 @@ class UISCompareInput(BaseModel):
         "openWorldHint": True,
     },
 )
+@logged_tool
 async def uis_compare_countries(params: UISCompareInput) -> str:
     """Vergleicht Bildungsindikatoren zwischen mehreren Ländern (UNESCO UIS).
 
@@ -527,6 +590,7 @@ class UISCountryProfileInput(BaseModel):
         "openWorldHint": True,
     },
 )
+@logged_tool
 async def uis_country_education_profile(params: UISCountryProfileInput) -> str:
     """Erstellt ein umfassendes Bildungsprofil für ein Land via UNESCO UIS.
 
@@ -609,6 +673,7 @@ async def uis_country_education_profile(params: UISCountryProfileInput) -> str:
         "openWorldHint": True,
     },
 )
+@logged_tool
 async def uis_list_versions() -> str:
     """Listet verfügbare Versionen der UNESCO UIS-Datenbank auf.
 
@@ -630,6 +695,7 @@ async def uis_list_versions() -> str:
         lines.append("_Neueste Version wird standardmässig verwendet._")
         return "\n".join(lines)
     except Exception as e:
+        raise_if_transient(e, "uis_list_versions")
         return handle_api_error(e, "uis_list_versions")
 
 
@@ -648,6 +714,7 @@ async def uis_list_versions() -> str:
         "openWorldHint": True,
     },
 )
+@logged_tool
 async def oecd_list_education_datasets() -> str:
     """Listet verfügbare OECD Education at a Glance Datensätze auf.
 
@@ -734,6 +801,7 @@ class OECDDataInput(BaseModel):
         "openWorldHint": True,
     },
 )
+@logged_tool
 async def oecd_get_education_indicator(params: OECDDataInput) -> str:
     """Ruft Bildungsdaten aus dem OECD Education at a Glance Report ab.
 
@@ -810,6 +878,7 @@ async def oecd_get_education_indicator(params: OECDDataInput) -> str:
         return "\n".join(lines)
 
     except Exception as e:
+        raise_if_transient(e, context=f"oecd({params.dataflow_id})")
         return (
             f"## OECD – {params.dataflow_id}\n\n"
             f"{handle_api_error(e, context=f'oecd({params.dataflow_id})')}\n\n"
@@ -851,6 +920,7 @@ class OECDSearchInput(BaseModel):
         "openWorldHint": True,
     },
 )
+@logged_tool
 async def oecd_search_datasets(params: OECDSearchInput) -> str:
     """Durchsucht alle OECD-Datensätze nach einem Stichwort.
 
@@ -890,6 +960,7 @@ async def oecd_search_datasets(params: OECDSearchInput) -> str:
         return "\n".join(lines)
 
     except Exception as e:
+        raise_if_transient(e, context=f"oecd_search({params.keyword})")
         return handle_api_error(e, f"oecd_search({params.keyword})")
 
 
@@ -929,6 +1000,7 @@ class CrossSourceInput(BaseModel):
         "openWorldHint": True,
     },
 )
+@logged_tool
 async def education_benchmark_countries(params: CrossSourceInput) -> str:
     """Benchmarkt mehrere Länder auf einem Bildungsthema via UNESCO UIS.
 
@@ -1089,14 +1161,19 @@ async def prompt_sdg4() -> str:
 
 def main() -> None:
     """Startet den MCP-Server."""
+    configure_logging()  # JSON auf stderr, Level aus LOG_LEVEL (Default INFO)
     transport = os.environ.get("MCP_TRANSPORT", "stdio")
     host = os.environ.get("MCP_HOST", "127.0.0.1")
     if transport != "stdio" and host == "0.0.0.0":
-        import sys
-        sys.stderr.write(
-            "WARN: MCP_HOST=0.0.0.0 exponiert den SSE-Server auf alle Netzwerk-\n"
-            "      Interfaces ohne Auth/TLS. Nur hinter einem Reverse-Proxy\n"
-            "      (TLS, Auth, Rate-Limiting) verwenden. Lokal: MCP_HOST=127.0.0.1.\n"
+        logger.warning(
+            "host_exposed_warning",
+            extra={
+                "extra_fields": {
+                    "transport": transport,
+                    "host": host,
+                    "advice": "Reverse-Proxy mit TLS + Auth + Rate-Limit zwingend.",
+                }
+            },
         )
     if transport == "sse":
         mcp.run(transport="sse")
