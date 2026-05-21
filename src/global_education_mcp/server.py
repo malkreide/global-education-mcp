@@ -13,15 +13,21 @@ Zielgruppe: Bildungsforschung, Schuladministration, Politikanalyse.
 Entwickelt von: Schulamt der Stadt Zürich.
 """
 
+import asyncio
 import json
 import os
+from contextlib import asynccontextmanager
 from typing import Optional
 
+import httpx
 from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel, ConfigDict, Field
 
+from . import api_client
 from .api_client import (
+    LIMITS,
     OECD_EDUCATION_DATAFLOWS,
+    TIMEOUT,
     UNESCO_EDUCATION_INDICATORS,
     format_country_timeseries,
     format_uis_data_as_markdown,
@@ -35,10 +41,26 @@ from .api_client import (
     uis_get_versions,
 )
 
+
+@asynccontextmanager
+async def lifespan(_server: "FastMCP"):
+    """Stellt einen einzigen httpx.AsyncClient bereit, der über die gesamte
+    Server-Laufzeit wiederverwendet wird (Connection-Pooling, persistente
+    TLS-Sitzungen). Bei Shutdown wird der Client sauber geschlossen.
+    """
+    client = httpx.AsyncClient(timeout=TIMEOUT, limits=LIMITS)
+    api_client.set_shared_client(client)
+    try:
+        yield
+    finally:
+        api_client.set_shared_client(None)
+        await client.aclose()
+
 # ─── Server Setup ─────────────────────────────────────────────────────────────
 
 mcp = FastMCP(
     "global_education_mcp",
+    lifespan=lifespan,
     instructions=(
         "MCP-Server für internationale Bildungsdaten. "
         "Bietet Zugriff auf zwei komplementäre Quellen: "
@@ -412,31 +434,37 @@ async def uis_compare_countries(params: UISCompareInput) -> str:
     results: list[dict] = []
     errors: list[str] = []
 
-    for code in params.country_codes[:15]:
-        try:
-            raw = await uis_get_data(
+    codes = params.country_codes[:15]
+    raw_responses = await asyncio.gather(
+        *(
+            uis_get_data(
                 indicator=params.indicator_id,
                 geo_unit=code,
                 start_year=params.year,
                 end_year=params.year,
             )
-            observations = raw.get("observations", raw.get("data", []))
-            if observations:
-                # Neuesten verfügbaren Wert nehmen
-                sorted_obs = sorted(observations, key=lambda x: x.get("year", 0), reverse=True)
-                latest = sorted_obs[0]
-                results.append(
-                    {
-                        "country": code,
-                        "country_name": latest.get("geoUnitName", code),
-                        "value": latest.get("value"),
-                        "year": latest.get("year", "?"),
-                    }
-                )
-            else:
-                errors.append(f"{code}: keine Daten")
-        except Exception as e:
-            errors.append(f"{code}: {handle_api_error(e)}")
+            for code in codes
+        ),
+        return_exceptions=True,
+    )
+    for code, raw in zip(codes, raw_responses):
+        if isinstance(raw, Exception):
+            errors.append(f"{code}: {handle_api_error(raw)}")
+            continue
+        observations = raw.get("observations", raw.get("data", []))
+        if observations:
+            sorted_obs = sorted(observations, key=lambda x: x.get("year", 0), reverse=True)
+            latest = sorted_obs[0]
+            results.append(
+                {
+                    "country": code,
+                    "country_name": latest.get("geoUnitName", code),
+                    "value": latest.get("value"),
+                    "year": latest.get("year", "?"),
+                }
+            )
+        else:
+            errors.append(f"{code}: keine Daten")
 
     if not results:
         return f"_Keine Daten für {params.indicator_id} gefunden. Fehler: {'; '.join(errors)}_"
@@ -531,21 +559,27 @@ async def uis_country_education_profile(params: UISCountryProfileInput) -> str:
     ]
 
     errors: list[str] = []
-    for ind_id, ind_label in key_indicators:
-        try:
-            raw = await uis_get_data(indicator=ind_id, geo_unit=params.country_code)
-            observations = raw.get("observations", raw.get("data", []))
-            if observations:
-                sorted_obs = sorted(observations, key=lambda x: x.get("year", 0), reverse=True)
-                latest = sorted_obs[0]
-                value = latest.get("value", "–")
-                year = latest.get("year", "?")
-                lines.append(f"| {ind_label} | **{value}** | {year} |")
-            else:
-                lines.append(f"| {ind_label} | _keine Daten_ | – |")
-        except Exception as e:
-            errors.append(f"{ind_id}: {str(e)[:80]}")
+    raw_responses = await asyncio.gather(
+        *(
+            uis_get_data(indicator=ind_id, geo_unit=params.country_code)
+            for ind_id, _ in key_indicators
+        ),
+        return_exceptions=True,
+    )
+    for (ind_id, ind_label), raw in zip(key_indicators, raw_responses):
+        if isinstance(raw, Exception):
+            errors.append(f"{ind_id}: {str(raw)[:80]}")
             lines.append(f"| {ind_label} | _nicht verfügbar_ | – |")
+            continue
+        observations = raw.get("observations", raw.get("data", []))
+        if observations:
+            sorted_obs = sorted(observations, key=lambda x: x.get("year", 0), reverse=True)
+            latest = sorted_obs[0]
+            value = latest.get("value", "–")
+            year = latest.get("year", "?")
+            lines.append(f"| {ind_label} | **{value}** | {year} |")
+        else:
+            lines.append(f"| {ind_label} | _keine Daten_ | – |")
 
     lines.append("")
     lines.append("### Hinweis")
@@ -953,23 +987,26 @@ async def education_benchmark_countries(params: CrossSourceInput) -> str:
         lines.append("| Rang | Land | Wert | Jahr |")
         lines.append("|------|------|------|------|")
 
+        raw_responses = await asyncio.gather(
+            *(uis_get_data(indicator=ind_id, geo_unit=code) for code in params.country_codes),
+            return_exceptions=True,
+        )
         results: list[dict] = []
-        for code in params.country_codes:
-            try:
-                raw = await uis_get_data(indicator=ind_id, geo_unit=code)
-                obs = raw.get("observations", raw.get("data", []))
-                if obs:
-                    latest = sorted(obs, key=lambda x: x.get("year", 0), reverse=True)[0]
-                    results.append(
-                        {
-                            "country": code,
-                            "value": latest.get("value"),
-                            "year": latest.get("year", "?"),
-                        }
-                    )
-                else:
-                    results.append({"country": code, "value": None, "year": "–"})
-            except Exception:
+        for code, raw in zip(params.country_codes, raw_responses):
+            if isinstance(raw, Exception):
+                results.append({"country": code, "value": None, "year": "–"})
+                continue
+            obs = raw.get("observations", raw.get("data", []))
+            if obs:
+                latest = sorted(obs, key=lambda x: x.get("year", 0), reverse=True)[0]
+                results.append(
+                    {
+                        "country": code,
+                        "value": latest.get("value"),
+                        "year": latest.get("year", "?"),
+                    }
+                )
+            else:
                 results.append({"country": code, "value": None, "year": "–"})
 
         try:
