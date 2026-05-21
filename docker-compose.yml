@@ -1,0 +1,49 @@
+# docker-compose.yml — Beispiel-Setup fuer einen gehaerteten SSE-Container.
+# Adressiert Audit-Finding SEC-007 (Container-Sandboxing).
+#
+# Start:   docker compose up --build
+# Stop:    docker compose down
+#
+# Im produktiven Schulamt-Setup soll dieser Container hinter einem
+# Reverse-Proxy laufen (nginx/caddy mit TLS, Basic-Auth oder mTLS,
+# Rate-Limiting). Der Port wird hier deshalb explizit nur auf 127.0.0.1
+# gebunden — nginx auf demselben Host vermittelt nach aussen.
+
+services:
+  global-education-mcp:
+    build:
+      context: .
+      args:
+        PYTHON_VERSION: "3.13"
+    image: global-education-mcp:local
+    container_name: global-education-mcp
+    restart: unless-stopped
+
+    # Nur loopback exponieren — externe Erreichbarkeit MUSS ueber Reverse-Proxy.
+    ports:
+      - "127.0.0.1:8000:8000"
+
+    environment:
+      MCP_TRANSPORT: sse
+      MCP_HOST: "0.0.0.0"    # Im Container ok: Container-Netz, nicht Host-Netz.
+      PORT: "8000"
+      LOG_LEVEL: INFO
+
+    # Sandboxing (SEC-007 Pass-Criteria):
+    read_only: true                      # Filesystem read-only
+    cap_drop:                            # alle Linux-Capabilities droppen
+      - ALL
+    security_opt:
+      - no-new-privileges:true           # setuid kann keine Privilegien adden
+    tmpfs:
+      - /tmp:size=16M,mode=1777          # /tmp wird oft fuer pip/httpx caches benoetigt
+    user: "10001:10001"                  # explizit (auch wenn Dockerfile dies setzt)
+
+    # Health-Check: TCP-Socket auf Port 8000 erreichbar (SSE-Endpoint streamt,
+    # daher kein HTTP-GET — wuerde blockieren bzw. waere unzuverlaessig).
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket, sys; s=socket.create_connection(('127.0.0.1', 8000), timeout=2); s.close()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

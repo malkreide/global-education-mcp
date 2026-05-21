@@ -72,7 +72,10 @@ mcp = FastMCP(
         "Alle Daten frei zugänglich, keine API-Schlüssel erforderlich. "
         "Ländercodes: ISO 3166-1 Alpha-3 (z.B. CHE=Schweiz, DEU=Deutschland, AUT=Österreich)."
     ),
-    host=os.environ.get("MCP_HOST", "0.0.0.0"),
+    # Default 127.0.0.1: SSE-Mode soll nicht versehentlich im LAN exponiert
+    # werden. Fuer Container-Deployment im Reverse-Proxy explizit MCP_HOST=0.0.0.0
+    # setzen (siehe README "Cloud Deployment").
+    host=os.environ.get("MCP_HOST", "127.0.0.1"),
     port=int(os.environ.get("PORT", "8000")),
 )
 
@@ -1087,6 +1090,14 @@ async def prompt_sdg4() -> str:
 def main() -> None:
     """Startet den MCP-Server."""
     transport = os.environ.get("MCP_TRANSPORT", "stdio")
+    host = os.environ.get("MCP_HOST", "127.0.0.1")
+    if transport != "stdio" and host == "0.0.0.0":
+        import sys
+        sys.stderr.write(
+            "WARN: MCP_HOST=0.0.0.0 exponiert den SSE-Server auf alle Netzwerk-\n"
+            "      Interfaces ohne Auth/TLS. Nur hinter einem Reverse-Proxy\n"
+            "      (TLS, Auth, Rate-Limiting) verwenden. Lokal: MCP_HOST=127.0.0.1.\n"
+        )
     if transport == "sse":
         mcp.run(transport="sse")
     else:

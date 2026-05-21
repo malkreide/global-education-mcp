@@ -120,27 +120,50 @@ A ready-to-use `claude_desktop_config.json` is included in the repository root.
 
 ### Cloud Deployment (SSE for browser access)
 
-For use via **claude.ai in the browser** (e.g. on managed workstations without local software):
+For use via **claude.ai in the browser** (e.g. on managed workstations without local software).
 
-**Render.com (recommended):**
+> ⚠️ **Security note:** Since v0.3, `MCP_HOST` defaults to `127.0.0.1`. The
+> SSE transport must **always** run behind a reverse proxy that adds TLS,
+> authentication, and rate-limiting. Never expose the raw port to the
+> internet — `MCP_HOST=0.0.0.0` is only safe inside an isolated
+> container network.
+
+**Docker (recommended):**
+
+The repository ships a hardened multi-stage `Dockerfile` and a
+`docker-compose.yml` that applies `read_only: true`, `cap_drop: [ALL]`,
+`security_opt: [no-new-privileges:true]`, and runs as non-root user
+`uid 10001`. The compose file binds the port to `127.0.0.1` so a host-level
+reverse proxy is required for any external access.
+
+```bash
+docker compose up --build
+# then point nginx/caddy at 127.0.0.1:8000/sse with TLS + auth
+```
+
+Plain `docker run` (without compose):
+
+```bash
+docker build -t global-education-mcp .
+docker run --rm \
+  --read-only --cap-drop ALL --security-opt no-new-privileges \
+  --tmpfs /tmp:size=16M,mode=1777 \
+  -p 127.0.0.1:8000:8000 \
+  global-education-mcp
+```
+
+**Render.com:**
 1. Push/fork the repository to GitHub
 2. On [render.com](https://render.com): New Web Service → connect GitHub repo
 3. Set environment variables in the Render dashboard:
    ```
    MCP_TRANSPORT=sse
+   MCP_HOST=0.0.0.0      # Render needs 0.0.0.0; their edge layer provides TLS + auth.
    PORT=8000
    ```
 4. In claude.ai under Settings → MCP Servers, add: `https://your-app.onrender.com/sse`
 
-**Docker:**
-```bash
-docker build -t global-education-mcp .
-docker run -p 8000:8000 \
-  -e MCP_TRANSPORT=sse \
-  global-education-mcp
-```
-
-> 💡 *"stdio for the developer laptop, SSE for the browser."*
+> 💡 *"stdio for the developer laptop, sandboxed SSE container for the browser."*
 
 ---
 
