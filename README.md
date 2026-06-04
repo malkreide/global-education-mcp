@@ -282,7 +282,10 @@ global-education-mcp/
 ├── claude_desktop_config.json      # Ready-to-use Claude Desktop config
 ├── pyproject.toml                  # Build configuration (hatchling)
 ├── CHANGELOG.md
-├── CONTRIBUTING.md
+├── CONTRIBUTING.md                 # Contribution guide (English)
+├── CONTRIBUTING.de.md              # Contribution guide (German)
+├── SECURITY.md                     # Security policy (English)
+├── SECURITY.de.md                  # Security policy (German)
 ├── LICENSE
 ├── README.md                       # This file (English)
 └── README.de.md                    # German version
@@ -403,6 +406,12 @@ Contributions are welcome. Please open an issue first to discuss what you would 
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## Security
+
+To report a vulnerability, see [SECURITY.md](SECURITY.md) ([🇩🇪 Deutsche Version](SECURITY.de.md)). Please use the private channels described there rather than public issues.
 
 ---
 
