@@ -282,7 +282,10 @@ global-education-mcp/
 ├── claude_desktop_config.json      # Einsatzbereite Claude Desktop Konfiguration
 ├── pyproject.toml                  # Build-Konfiguration (hatchling)
 ├── CHANGELOG.md
-├── CONTRIBUTING.md
+├── CONTRIBUTING.md                 # Beitragsleitfaden (Englisch)
+├── CONTRIBUTING.de.md              # Beitragsleitfaden (Deutsch)
+├── SECURITY.md                     # Sicherheitsrichtlinie (Englisch)
+├── SECURITY.de.md                  # Sicherheitsrichtlinie (Deutsch)
 ├── LICENSE
 ├── README.md                       # Englische Hauptversion
 └── README.de.md                    # Diese Datei (Deutsch)
@@ -395,13 +398,19 @@ Beiträge sind willkommen. Bitte öffne zuerst ein Issue, um zu besprechen, was 
 - Tests für neue Tools hinzufügen (`tests/test_server.py` oder `test_extended_scenarios.py`)
 - `@pytest.mark.integration` für Tests verwenden, die Live-APIs aufrufen
 - `CHANGELOG.md` und die Tool-Tabelle in diesem README aktualisieren
-- Vollständiger Beitragsleitfaden: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Vollständiger Beitragsleitfaden: [CONTRIBUTING.de.md](CONTRIBUTING.de.md) ([🇬🇧 English Version](CONTRIBUTING.md))
 
 ---
 
 ## Changelog
 
 Siehe [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## Sicherheit
+
+Um eine Schwachstelle zu melden, siehe [SECURITY.de.md](SECURITY.de.md) ([🇬🇧 English Version](SECURITY.md)). Bitte nutze die dort beschriebenen privaten Kanäle statt öffentlicher Issues.
 
 ---
 

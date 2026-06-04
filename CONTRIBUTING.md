@@ -1,5 +1,7 @@
 # Contributing to global-education-mcp
 
+[🇩🇪 Deutsche Version](CONTRIBUTING.de.md)
+
 Thank you for your interest in contributing! This project is part of the [Swiss Public Data MCP Portfolio](https://github.com/malkreide).
 
 ---
