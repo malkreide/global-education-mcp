@@ -32,3 +32,8 @@ jobs:
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         # Kein Passwort / kein API-Token – läuft über Trusted Publisher (OIDC)
+        with:
+          # Bereits hochgeladene Dateien (z. B. bei einem Re-Run desselben
+          # Tags) überspringen, statt mit "400 File already exists" rot zu
+          # werden. PyPI erlaubt keinen Re-Upload einer existierenden Version.
+          skip-existing: true

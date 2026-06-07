@@ -7,6 +7,18 @@ Versionierung folgt [Semantic Versioning 2.0](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.3.4] — 2026-06-07
+
+### Changed
+- Versions-Bump für ein neues PyPI-Release (0.3.3 war auf PyPI bereits
+  belegt und kann laut PyPI-Policy nicht erneut hochgeladen werden).
+- `__version__` in `__init__.py` mit `pyproject.toml` synchronisiert
+  (stand zuvor auf `0.3.0`).
+
+### Fixed
+- Publish-Workflow setzt `skip-existing: true`, damit Re-Runs eines Tags
+  nicht mehr mit `400 File already exists` fehlschlagen.
+
 ## [0.3.0] — 2026-05-21
 
 Release nach vollständiger Umsetzung des MCP-Best-Practice-Audits
