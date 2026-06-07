@@ -435,3 +435,5 @@ Hayal Oezkan · [github.com/malkreide](https://github.com/malkreide)
 - **Related:** [swiss-transport-mcp](https://github.com/malkreide/swiss-transport-mcp) – MCP server for Swiss public transport
 - **Related:** [zurich-opendata-mcp](https://github.com/malkreide/zurich-opendata-mcp) – MCP server for Zurich city open data
 - **Portfolio:** [Swiss Public Data MCP Portfolio](https://github.com/malkreide)
+
+<!-- mcp-name: io.github.malkreide/global-education-mcp -->

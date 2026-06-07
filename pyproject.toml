@@ -45,7 +45,6 @@ dev = [
 ]
 
 [project.urls]
-"mcp-name" = "io.github.malkreide/global-education-mcp"
 Homepage = "https://github.com/malkreide/global-education-mcp"
 Repository = "https://github.com/malkreide/global-education-mcp"
 "UNESCO UIS" = "https://api.uis.unesco.org/api/public/documentation"
