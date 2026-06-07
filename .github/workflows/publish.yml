@@ -4,6 +4,11 @@ on:
   push:
     tags:
       - "v*.*.*"
+  # Manueller Start ohne Tag-Push: erlaubt das Ausloesen eines Releases
+  # ueber die GitHub-Oberflaeche bzw. -API (z. B. wenn der Tag in einer
+  # eingeschraenkten Umgebung nicht gepusht werden kann). Die zu
+  # veroeffentlichende Version ergibt sich weiterhin aus pyproject.toml.
+  workflow_dispatch:
 
 jobs:
   build-and-publish:
