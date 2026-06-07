@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "global-education-mcp"
-version = "0.3.2"
+version = "0.3.3"
 description = "MCP Server für internationale Bildungsdaten – UNESCO UIS (4000+ Indikatoren) und OECD Education at a Glance (SDMX API)"
 readme = "README.md"
 license = "MIT"
