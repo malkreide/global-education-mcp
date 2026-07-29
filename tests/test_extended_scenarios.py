@@ -31,7 +31,6 @@ from global_education_mcp.api_client import (
 from global_education_mcp.server import (
     CrossSourceInput,
     OECDDataInput,
-    OECDSearchInput,
     UISCompareInput,
     UISCountryProfileInput,
     UISDataInput,
@@ -40,7 +39,6 @@ from global_education_mcp.server import (
     education_benchmark_countries,
     oecd_get_education_indicator,
     oecd_list_education_datasets,
-    oecd_search_datasets,
     uis_compare_countries,
     uis_country_education_profile,
     uis_get_education_data,

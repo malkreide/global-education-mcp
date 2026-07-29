@@ -261,7 +261,7 @@ def raise_if_transient(e: Exception, context: str = "") -> None:
     # Lokaler Import: MCPError ist nur in Tool-Bodies relevant; das
     # vermeidet einen Modul-Level-Import-Cycle bei Test-Bootstrapping.
     from mcp.shared.exceptions import MCPError
-    from mcp.types import INTERNAL_ERROR, ErrorData
+    from mcp.types import INTERNAL_ERROR
 
     ctx = f" [{context}]" if context else ""
     if isinstance(e, httpx.HTTPStatusError):
