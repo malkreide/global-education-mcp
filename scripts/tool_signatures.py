@@ -71,7 +71,12 @@ async def collect_signatures() -> dict[str, Any]:
     for tool in tools:
         annotations_dict: Any = None
         if tool.annotations is not None:
-            annotations_dict = tool.annotations.model_dump(mode="json", exclude_none=True)
+            # by_alias keeps the wire spelling (readOnlyHint, ...): mcp_types 2.x
+            # renamed the fields to snake_case, so a bare dump would change
+            # every signature hash without any contract change.
+            annotations_dict = tool.annotations.model_dump(
+                mode="json", exclude_none=True, by_alias=True
+            )
         # Docstrings deterministisch normalisieren. Python 3.13 strippt
         # gemeinsame Einrueckung beim Compile (whatsnew 3.13, PEP-257-style),
         # 3.11/3.12 nicht — `inspect.cleandoc` macht das auf allen Versionen
