@@ -23,7 +23,7 @@ from contextlib import asynccontextmanager
 from typing import Any, Awaitable, Callable, Optional, TypeVar
 
 import httpx
-from mcp.server.fastmcp import Context, FastMCP
+from mcp.server.mcpserver import Context, MCPServer
 from pydantic import BaseModel, ConfigDict, Field
 
 from . import api_client
@@ -76,7 +76,7 @@ def logged_tool(fn: _F) -> _F:
 
     Loggt pro Aufruf eine JSON-Zeile mit (tool, duration_ms, status,
     error_class). Erhaelt Signatur + __doc__ via functools.wraps, damit
-    FastMCP weiterhin die richtige inputSchema/description ableiten kann
+    MCPServer weiterhin die richtige inputSchema/description ableiten kann
     und der tools.lock.json-Hash stabil bleibt.
 
     Adressiert Audit-Finding OBS-003 (Structured Logging).
@@ -118,7 +118,7 @@ def logged_tool(fn: _F) -> _F:
 
 
 @asynccontextmanager
-async def lifespan(_server: "FastMCP"):
+async def lifespan(_server: "MCPServer"):
     """Stellt einen einzigen httpx.AsyncClient bereit, der über die gesamte
     Server-Laufzeit wiederverwendet wird (Connection-Pooling, persistente
     TLS-Sitzungen). Bei Shutdown wird der Client sauber geschlossen.
@@ -133,7 +133,7 @@ async def lifespan(_server: "FastMCP"):
 
 # ─── Server Setup ─────────────────────────────────────────────────────────────
 
-mcp = FastMCP(
+mcp = MCPServer(
     "global_education_mcp",
     lifespan=lifespan,
     instructions=(
@@ -150,8 +150,6 @@ mcp = FastMCP(
     # Default 127.0.0.1: SSE-Mode soll nicht versehentlich im LAN exponiert
     # werden. Fuer Container-Deployment im Reverse-Proxy explizit MCP_HOST=0.0.0.0
     # setzen (siehe README "Cloud Deployment").
-    host=os.environ.get("MCP_HOST", "127.0.0.1"),
-    port=int(os.environ.get("PORT", "8000")),
 )
 
 
@@ -1242,7 +1240,12 @@ def main() -> None:
             },
         )
     if transport == "sse":
-        mcp.run(transport="sse")
+        # mcp 2.x: the bind address is a run() kwarg, not a constructor arg.
+        mcp.run(
+            transport="sse",
+            host=os.environ.get("MCP_HOST", "127.0.0.1"),
+            port=int(os.environ.get("PORT", "8000")),
+        )
     else:
         mcp.run(transport="stdio")
 

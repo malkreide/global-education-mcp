@@ -61,7 +61,7 @@ SUSPICIOUS_PATTERNS: list[tuple[str, str]] = [
 
 
 async def collect_signatures() -> dict[str, Any]:
-    """Liest alle registrierten MCP-Tools via FastMCP.list_tools() und
+    """Liest alle registrierten MCP-Tools via MCPServer.list_tools() und
     serialisiert sie deterministisch (sorted keys) plus SHA-256.
     """
     from global_education_mcp.server import mcp
@@ -82,7 +82,7 @@ async def collect_signatures() -> dict[str, Any]:
         signature = {
             "name": tool.name,
             "description": description,
-            "inputSchema": tool.inputSchema,
+            "inputSchema": tool.input_schema,
             "annotations": annotations_dict,
         }
         canonical = json.dumps(signature, sort_keys=True, ensure_ascii=False)
