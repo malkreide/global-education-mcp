@@ -31,7 +31,6 @@ from global_education_mcp.api_client import (
 from global_education_mcp.server import (
     CrossSourceInput,
     OECDDataInput,
-    OECDSearchInput,
     UISCompareInput,
     UISCountryProfileInput,
     UISDataInput,
@@ -40,7 +39,6 @@ from global_education_mcp.server import (
     education_benchmark_countries,
     oecd_get_education_indicator,
     oecd_list_education_datasets,
-    oecd_search_datasets,
     uis_compare_countries,
     uis_country_education_profile,
     uis_get_education_data,
@@ -509,17 +507,17 @@ class TestResilienceAndFailureCascades:
 
     @pytest.mark.asyncio
     async def test_oecd_indicator_with_timeout_raises_mcp_error(self):
-        """OECD-Timeout ist ein transienter Fehler -> McpError (OBS-001).
+        """OECD-Timeout ist ein transienter Fehler -> MCPError (OBS-001).
 
         Seit dem OBS-001-Fix raisen Tools fuer 5xx/Timeout/Connect ein
-        McpError, damit der Host retryen kann. 4xx bleibt Tool-Result-Text.
+        MCPError, damit der Host retryen kann. 4xx bleibt Tool-Result-Text.
         Diese Semantik wird hier explizit geprueft.
         """
-        from mcp.shared.exceptions import McpError
+        from mcp.shared.exceptions import MCPError
 
         with patch("global_education_mcp.server.oecd_get_education_data",
                    side_effect=httpx.TimeoutException("Timeout")):
-            with pytest.raises(McpError) as exc_info:
+            with pytest.raises(MCPError) as exc_info:
                 await oecd_get_education_indicator(
                     OECDDataInput(dataflow_id="EAG_FISC", countries=["CHE"])
                 )

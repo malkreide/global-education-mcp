@@ -16,6 +16,7 @@ from global_education_mcp.api_client import (
     handle_api_error,
 )
 from global_education_mcp.server import (
+    CrossSourceInput,
     OECDDataInput,
     OECDSearchInput,
     UISCompareInput,
@@ -23,7 +24,6 @@ from global_education_mcp.server import (
     UISDataInput,
     UISGeoUnitsInput,
     UISIndicatorsInput,
-    CrossSourceInput,
     education_benchmark_countries,
     oecd_get_education_indicator,
     oecd_list_education_datasets,
@@ -565,6 +565,7 @@ class TestLoggingSetup:
 
     def test_json_formatter_emits_valid_json(self):
         import logging
+
         from global_education_mcp.logging_setup import JSONFormatter
 
         record = logging.LogRecord(
@@ -583,6 +584,7 @@ class TestLoggingSetup:
 
     def test_configure_logging_writes_to_stderr_not_stdout(self, capsys):
         import logging
+
         from global_education_mcp.logging_setup import configure_logging
 
         configure_logging("INFO")
@@ -595,6 +597,7 @@ class TestLoggingSetup:
 
     def test_configure_logging_respects_log_level_env(self, monkeypatch):
         import logging
+
         from global_education_mcp.logging_setup import configure_logging
 
         monkeypatch.setenv("LOG_LEVEL", "WARNING")
@@ -603,40 +606,44 @@ class TestLoggingSetup:
 
 
 class TestErrorClassification:
-    """raise_if_transient: 5xx/Timeout/Connect -> McpError, 4xx -> no-op (OBS-001)."""
+    """raise_if_transient: 5xx/Timeout/Connect -> MCPError, 4xx -> no-op (OBS-001)."""
 
     def test_timeout_raises_mcp_error(self):
         import httpx
-        from mcp.shared.exceptions import McpError
+        from mcp.shared.exceptions import MCPError
+
         from global_education_mcp.api_client import raise_if_transient
 
-        with pytest.raises(McpError) as exc:
+        with pytest.raises(MCPError) as exc:
             raise_if_transient(httpx.TimeoutException("slow"), context="uis_test")
         assert "uis_test" in str(exc.value)
         assert "TimeoutException" in str(exc.value)
 
     def test_connect_error_raises_mcp_error(self):
         import httpx
-        from mcp.shared.exceptions import McpError
+        from mcp.shared.exceptions import MCPError
+
         from global_education_mcp.api_client import raise_if_transient
 
-        with pytest.raises(McpError):
+        with pytest.raises(MCPError):
             raise_if_transient(httpx.ConnectError("no dns"))
 
     def test_5xx_raises_mcp_error(self):
         import httpx
-        from mcp.shared.exceptions import McpError
+        from mcp.shared.exceptions import MCPError
+
         from global_education_mcp.api_client import raise_if_transient
 
         resp = AsyncMock()
         resp.status_code = 503
         err = httpx.HTTPStatusError("down", request=AsyncMock(), response=resp)
-        with pytest.raises(McpError) as exc:
+        with pytest.raises(MCPError) as exc:
             raise_if_transient(err, context="oecd_test")
         assert "503" in str(exc.value)
 
     def test_4xx_is_noop(self):
         import httpx
+
         from global_education_mcp.api_client import raise_if_transient
 
         resp = AsyncMock()
@@ -657,11 +664,12 @@ class TestLoggedToolDecorator:
     @pytest.mark.asyncio
     async def test_decorator_preserves_signature_and_doc(self):
         import inspect
+
         from global_education_mcp.server import uis_list_indicators
 
         sig = inspect.signature(uis_list_indicators)
         assert list(sig.parameters) == ["params"]
-        # Description must be intact (FastMCP needs this for inputSchema/desc).
+        # Description must be intact (MCPServer needs this for inputSchema/desc).
         assert uis_list_indicators.__doc__ is not None
         assert "UNESCO" in uis_list_indicators.__doc__
 
@@ -683,7 +691,7 @@ class TestLoggedToolDecorator:
 
 
 class _MockContext:
-    """Minimal stand-in fuer FastMCP Context im Unit-Test."""
+    """Minimal stand-in fuer MCPServer Context im Unit-Test."""
 
     def __init__(self) -> None:
         self.infos: list[str] = []

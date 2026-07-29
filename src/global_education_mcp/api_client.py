@@ -12,7 +12,7 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-# Shared httpx client, gesetzt durch den FastMCP-Lifespan in server.py.
+# Shared httpx client, gesetzt durch den MCPServer-Lifespan in server.py.
 # Bei None (z.B. in Unit-Tests ohne Lifespan) erstellt http_get_* einen
 # Per-Request-Client als Fallback.
 _shared_client: Optional[httpx.AsyncClient] = None
@@ -242,13 +242,13 @@ async def oecd_search_education_datasets(keyword: str) -> list[dict]:
 
 
 def raise_if_transient(e: Exception, context: str = "") -> None:
-    """Loest McpError aus, wenn `e` ein transienter Upstream-Fehler ist.
+    """Loest MCPError aus, wenn `e` ein transienter Upstream-Fehler ist.
 
     Adressiert Audit-Finding OBS-001 (Trennung Protocol vs. Execution
     Errors). Idee:
 
     - 5xx / Timeout / Connect-Failures sind transient -> MCP-Host kann
-      sinnvoll retryen. Wir raisen McpError(code=INTERNAL_ERROR), damit
+      sinnvoll retryen. Wir raisen MCPError(code=INTERNAL_ERROR), damit
       der Host das Signal bekommt.
     - 4xx ist Client-Error (z.B. unbekannter Indikator, 400 Bad Request).
       Hier ist Retry sinnlos -> Caller formatiert via handle_api_error()
@@ -258,26 +258,22 @@ def raise_if_transient(e: Exception, context: str = "") -> None:
     Diese Funktion ist ein No-op fuer 4xx + andere Exceptions; der Caller
     fuehrt danach den text-basierten Pfad aus.
     """
-    # Lokaler Import: McpError ist nur in Tool-Bodies relevant; das
+    # Lokaler Import: MCPError ist nur in Tool-Bodies relevant; das
     # vermeidet einen Modul-Level-Import-Cycle bei Test-Bootstrapping.
-    from mcp.shared.exceptions import McpError
-    from mcp.types import INTERNAL_ERROR, ErrorData
+    from mcp.shared.exceptions import MCPError
+    from mcp.types import INTERNAL_ERROR
 
     ctx = f" [{context}]" if context else ""
     if isinstance(e, httpx.HTTPStatusError):
         status = e.response.status_code
         if 500 <= status < 600:
-            raise McpError(
-                ErrorData(code=INTERNAL_ERROR, message=f"Upstream API {status}{ctx}")
-            )
+            raise MCPError(code=INTERNAL_ERROR, message=f"Upstream API {status}{ctx}")
         # 4xx oder Sonstiges: kein raise, Caller formatiert als Text.
         return
     if isinstance(e, (httpx.TimeoutException, httpx.ConnectError)):
-        raise McpError(
-            ErrorData(
-                code=INTERNAL_ERROR,
-                message=f"Upstream API unreachable{ctx}: {type(e).__name__}",
-            )
+        raise MCPError(
+            code=INTERNAL_ERROR,
+            message=f"Upstream API unreachable{ctx}: {type(e).__name__}",
         )
 
 
