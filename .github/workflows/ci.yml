@@ -32,6 +32,13 @@ jobs:
       - name: Verify tool signatures + description lint
         run: PYTHONPATH=src python scripts/tool_signatures.py ci
 
+      # server.json stand hier auf 0.3.3, während pyproject.toml bei 0.3.4 war,
+      # und niemandem fiel es auf: publish.yml schreibt das Feld beim
+      # Veröffentlichen aus dem Tag, die committete Zahl wirkt also nie auf das
+      # Artefakt und wird von nichts widerlegt.
+      - name: Version sync (pyproject ↔ server.json / README / src)
+        run: python scripts/check_version_sync.py
+
   docker:
     name: Docker build (sandboxed runtime)
     runs-on: ubuntu-latest
