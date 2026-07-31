@@ -10,6 +10,12 @@ from typing import Any, Optional
 
 import httpx
 
+from . import __version__
+
+# Wer fragt hier an? Ohne eigenen User-Agent geht der httpx-Default
+# hinaus und der Betreiber der Datenquelle sieht bloss eine Bibliothek.
+# Die Version stammt aus den Paket-Metadaten und kann nicht driften.
+USER_AGENT = f"global-education-mcp/{__version__} (+https://github.com/malkreide/global-education-mcp)"
 logger = logging.getLogger(__name__)
 
 # Shared httpx client, gesetzt durch den MCPServer-Lifespan in server.py.
@@ -97,7 +103,7 @@ async def http_get_json(
         response = await _shared_client.get(url, params=params, headers=request_headers)
         response.raise_for_status()
         return response.json()
-    async with httpx.AsyncClient(timeout=TIMEOUT, limits=LIMITS) as client:
+    async with httpx.AsyncClient(timeout=TIMEOUT, limits=LIMITS, headers={"User-Agent": USER_AGENT}) as client:
         response = await client.get(url, params=params, headers=request_headers)
         response.raise_for_status()
         return response.json()
@@ -114,7 +120,7 @@ async def http_get_text(
         response = await _shared_client.get(url, params=params, headers=request_headers)
         response.raise_for_status()
         return response.text
-    async with httpx.AsyncClient(timeout=TIMEOUT, limits=LIMITS) as client:
+    async with httpx.AsyncClient(timeout=TIMEOUT, limits=LIMITS, headers={"User-Agent": USER_AGENT}) as client:
         response = await client.get(url, params=params, headers=request_headers)
         response.raise_for_status()
         return response.text
