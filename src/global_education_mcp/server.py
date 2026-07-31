@@ -32,6 +32,7 @@ from .api_client import (
     OECD_EDUCATION_DATAFLOWS,
     TIMEOUT,
     UNESCO_EDUCATION_INDICATORS,
+    USER_AGENT,
     format_country_timeseries,
     format_uis_data_as_markdown,
     handle_api_error,
@@ -123,7 +124,7 @@ async def lifespan(_server: "MCPServer"):
     Server-Laufzeit wiederverwendet wird (Connection-Pooling, persistente
     TLS-Sitzungen). Bei Shutdown wird der Client sauber geschlossen.
     """
-    client = httpx.AsyncClient(timeout=TIMEOUT, limits=LIMITS)
+    client = httpx.AsyncClient(timeout=TIMEOUT, limits=LIMITS, headers={"User-Agent": USER_AGENT})
     api_client.set_shared_client(client)
     try:
         yield

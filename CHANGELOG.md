@@ -7,6 +7,23 @@ Versionierung folgt [Semantic Versioning 2.0](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.3.5] — 2026-07-31
+
+### Hinzugefuegt
+
+- **Der Server nennt jetzt seinen Namen.** Bisher ging gegenueber jedem
+  Upstream der httpx-Default hinaus: der Betreiber der Datenquelle sah
+  eine Bibliothek, nicht uns, und hatte keinen Weg, uns bei Fehlverhalten
+  zu erreichen. Neu traegt jeden der 3 HTTP-Clients
+  `global-education-mcp/<version> (+github.com/malkreide/global-education-mcp)`.
+
+- **`__version__` kommt aus den Paket-Metadaten.** Vorher von Hand
+  gepflegt bzw. gar nicht vorhanden. Ein Literal waere genau die Drift,
+  die dieses Portfolio gerade ueberall beseitigt hat.
+
+  Die Version stammt aus `importlib.metadata` und kann nicht getrennt vom
+  Paket driften.
+
 ## [0.3.4] — 2026-06-07
 
 ### Changed
