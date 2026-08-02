@@ -41,22 +41,14 @@ LOCKFILE = REPO_ROOT / "tools.lock.json"
 # Heuristische Marker fuer Prompt-Injection in Tool-Descriptions.
 # Quelle: Anthropic / Simon Willison Tool-Poisoning-Notes 2024-2025.
 SUSPICIOUS_PATTERNS: list[tuple[str, str]] = [
-    (r"ignore\s+(all\s+)?(previous|prior|above)\s+(instructions?|prompts?|rules?)",
-     "Instruction-override-Pattern"),
-    (r"\bsystem\s+prompt\b",
-     "Direkte Referenz auf System-Prompt"),
-    (r"\bact\s+as\s+(?:a\s+|an\s+)?(?:system|admin|root)",
-     "Role-elevation-Pattern"),
-    (r"\bjail\s*break\b|\bDAN\b\s+mode",
-     "Jailbreak-Marker"),
-    (r"\b(?:execute|run|eval)\s+(?:the\s+)?(?:following|this)\s+(?:command|code|shell)",
-     "Code-Execution-Aufforderung"),
-    (r"\bos\.system\b|\bsubprocess\b\s*[.(]|\bshell\s*=\s*True",
-     "Shell-Execution-Referenz"),
-    (r"cat\s+/etc/(?:passwd|shadow|hosts)|/\.ssh/id_rsa",
-     "Sensible Filesystem-Pfade"),
-    (r"<\s*assistant\s*>|<\s*system\s*>|<\|im_start\|>",
-     "Falsche Rollen-Token"),
+    (r"ignore\s+(all\s+)?(previous|prior|above)\s+(instructions?|prompts?|rules?)", "Instruction-override-Pattern"),
+    (r"\bsystem\s+prompt\b", "Direkte Referenz auf System-Prompt"),
+    (r"\bact\s+as\s+(?:a\s+|an\s+)?(?:system|admin|root)", "Role-elevation-Pattern"),
+    (r"\bjail\s*break\b|\bDAN\b\s+mode", "Jailbreak-Marker"),
+    (r"\b(?:execute|run|eval)\s+(?:the\s+)?(?:following|this)\s+(?:command|code|shell)", "Code-Execution-Aufforderung"),
+    (r"\bos\.system\b|\bsubprocess\b\s*[.(]|\bshell\s*=\s*True", "Shell-Execution-Referenz"),
+    (r"cat\s+/etc/(?:passwd|shadow|hosts)|/\.ssh/id_rsa", "Sensible Filesystem-Pfade"),
+    (r"<\s*assistant\s*>|<\s*system\s*>|<\|im_start\|>", "Falsche Rollen-Token"),
 ]
 
 
@@ -74,9 +66,7 @@ async def collect_signatures() -> dict[str, Any]:
             # by_alias keeps the wire spelling (readOnlyHint, ...): mcp_types 2.x
             # renamed the fields to snake_case, so a bare dump would change
             # every signature hash without any contract change.
-            annotations_dict = tool.annotations.model_dump(
-                mode="json", exclude_none=True, by_alias=True
-            )
+            annotations_dict = tool.annotations.model_dump(mode="json", exclude_none=True, by_alias=True)
         # Docstrings deterministisch normalisieren. Python 3.13 strippt
         # gemeinsame Einrueckung beim Compile (whatsnew 3.13, PEP-257-style),
         # 3.11/3.12 nicht — `inspect.cleandoc` macht das auf allen Versionen
@@ -156,10 +146,7 @@ def cmd_lint() -> int:
         print(f"OK: keine verdaechtigen Marker in {len(snapshot)} Tool-Descriptions.")
         return 0
     for tool, label, pattern in hits:
-        sys.stderr.write(
-            f"ERROR: Tool '{tool}' enthaelt verdaechtiges Pattern "
-            f"({label}, regex: {pattern!r})\n"
-        )
+        sys.stderr.write(f"ERROR: Tool '{tool}' enthaelt verdaechtiges Pattern ({label}, regex: {pattern!r})\n")
     sys.stderr.write(
         "\nWenn der Treffer ein false positive ist, "
         "passe SUSPICIOUS_PATTERNS in scripts/tool_signatures.py an "

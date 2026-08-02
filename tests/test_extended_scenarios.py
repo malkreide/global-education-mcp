@@ -49,19 +49,16 @@ from global_education_mcp.server import (
 
 # ─── Gemeinsame Hilfsdaten ─────────────────────────────────────────────────────
 
-MOCK_SINGLE_OBS = lambda country, value, year=2022: {
-    "observations": [{"geoUnit": country, "geoUnitName": country, "year": year, "value": value}]
-}
+
+def MOCK_SINGLE_OBS(country, value, year=2022):
+    return {"observations": [{"geoUnit": country, "geoUnitName": country, "year": year, "value": value}]}
+
 
 MOCK_EMPTY = {"observations": []}
 
-MOCK_NULL_VALUE = {
-    "observations": [{"geoUnit": "CHE", "geoUnitName": "Switzerland", "year": 2022, "value": None}]
-}
+MOCK_NULL_VALUE = {"observations": [{"geoUnit": "CHE", "geoUnitName": "Switzerland", "year": 2022, "value": None}]}
 
-MOCK_ZERO_VALUE = {
-    "observations": [{"geoUnit": "SSD", "geoUnitName": "South Sudan", "year": 2022, "value": 0.0}]
-}
+MOCK_ZERO_VALUE = {"observations": [{"geoUnit": "SSD", "geoUnitName": "South Sudan", "year": 2022, "value": 0.0}]}
 
 MOCK_LARGE_TIMESERIES = {
     "observations": [
@@ -151,8 +148,23 @@ class TestEdgeCases:
 
     def test_compare_exactly_15_countries_allowed(self):
         """Genau 15 Länder sind erlaubt."""
-        codes = ["CHE", "DEU", "AUT", "FIN", "SGP", "KOR", "JPN", "FRA",
-                 "SWE", "NOR", "DNK", "NLD", "BEL", "ESP", "ITA"]
+        codes = [
+            "CHE",
+            "DEU",
+            "AUT",
+            "FIN",
+            "SGP",
+            "KOR",
+            "JPN",
+            "FRA",
+            "SWE",
+            "NOR",
+            "DNK",
+            "NLD",
+            "BEL",
+            "ESP",
+            "ITA",
+        ]
         inp = UISCompareInput(indicator_id="LR.AG15T99", country_codes=codes)
         assert len(inp.country_codes) == 15
 
@@ -184,8 +196,9 @@ class TestEdgeCases:
     @pytest.mark.asyncio
     async def test_large_timeseries_34_years_handled(self):
         """34 Jahre Zeitreihendaten sollen vollständig verarbeitet werden."""
-        with patch("global_education_mcp.server.uis_get_data", new_callable=AsyncMock,
-                   return_value=MOCK_LARGE_TIMESERIES):
+        with patch(
+            "global_education_mcp.server.uis_get_data", new_callable=AsyncMock, return_value=MOCK_LARGE_TIMESERIES
+        ):
             params = UISDataInput(indicator_id="LR.AG15T99", country_code="CHE")
             result = await uis_get_education_data(params)
             assert "1990" in result
@@ -260,8 +273,7 @@ class TestSecurityAndAdversarialInputs:
     @pytest.mark.asyncio
     async def test_search_with_special_characters_does_not_crash(self):
         """Sonderzeichen im Suchbegriff führen nicht zum Absturz."""
-        with patch("global_education_mcp.server.uis_get_indicators",
-                   new_callable=AsyncMock, return_value=[]):
+        with patch("global_education_mcp.server.uis_get_indicators", new_callable=AsyncMock, return_value=[]):
             for special_input in ["<script>", "'; DROP TABLE--", "/../etc/passwd", "🔥", "null", "undefined"]:
                 params = UISIndicatorsInput(search=special_input[:200])
                 result = await uis_list_indicators(params)
@@ -270,8 +282,7 @@ class TestSecurityAndAdversarialInputs:
     @pytest.mark.asyncio
     async def test_sql_like_country_code_handled_gracefully(self):
         """SQL-ähnlicher Ländercode führt zu sauberem Fehler, nicht zum Absturz."""
-        with patch("global_education_mcp.server.uis_get_data",
-                   side_effect=Exception("invalid country code")):
+        with patch("global_education_mcp.server.uis_get_data", side_effect=Exception("invalid country code")):
             params = UISDataInput(indicator_id="LR.AG15T99", country_code="OR1=1")
             result = await uis_get_education_data(params)
             assert isinstance(result, str)
@@ -333,24 +344,25 @@ class TestOutputQuality:
     @pytest.mark.asyncio
     async def test_uis_output_contains_source_attribution(self):
         """Alle UNESCO-Outputs müssen Quellenangabe enthalten."""
-        with patch("global_education_mcp.server.uis_get_indicators",
-                   new_callable=AsyncMock, return_value=[
-                       {"indicatorId": "LR.AG15T99", "indicatorName": "Literacy", "theme": "EDUCATION"}
-                   ]):
+        with patch(
+            "global_education_mcp.server.uis_get_indicators",
+            new_callable=AsyncMock,
+            return_value=[{"indicatorId": "LR.AG15T99", "indicatorName": "Literacy", "theme": "EDUCATION"}],
+        ):
             result = await uis_list_indicators(UISIndicatorsInput())
             assert "UNESCO" in result
 
     @pytest.mark.asyncio
     async def test_oecd_output_contains_source_attribution(self):
         """Alle OECD-Outputs müssen Quellenangabe enthalten."""
-        with patch("global_education_mcp.server.oecd_get_dataflows",
-                   new_callable=AsyncMock, return_value=[]):
+        with patch("global_education_mcp.server.oecd_get_dataflows", new_callable=AsyncMock, return_value=[]):
             result = await oecd_list_education_datasets()
             assert "OECD" in result
 
     @pytest.mark.asyncio
     async def test_compare_output_contains_markdown_table(self):
         """Vergleichsoutput muss Markdown-Tabelle mit | enthalten."""
+
         async def mock_data(indicator, geo_unit=None, **kwargs):
             return MOCK_SINGLE_OBS(geo_unit, 95.0)
 
@@ -371,6 +383,7 @@ class TestOutputQuality:
             "Schüler-Lehrer-Verhältnis",
             "Geschlechterparitätsindex",
         ]
+
         async def mock_data(indicator, geo_unit=None, **kwargs):
             return MOCK_SINGLE_OBS("CHE", 95.0)
 
@@ -384,6 +397,7 @@ class TestOutputQuality:
     @pytest.mark.asyncio
     async def test_benchmark_output_has_section_headers(self):
         """Benchmark-Report soll H2/H3-Header haben."""
+
         async def mock_data(indicator, geo_unit=None, **kwargs):
             return MOCK_SINGLE_OBS(geo_unit, 90.0)
 
@@ -396,11 +410,10 @@ class TestOutputQuality:
     @pytest.mark.asyncio
     async def test_timeseries_output_has_year_column(self):
         """Zeitreihen-Output muss Jahresspalte enthalten."""
-        with patch("global_education_mcp.server.uis_get_data",
-                   new_callable=AsyncMock, return_value=MOCK_LARGE_TIMESERIES):
-            result = await uis_get_education_data(
-                UISDataInput(indicator_id="LR.AG15T99", country_code="CHE")
-            )
+        with patch(
+            "global_education_mcp.server.uis_get_data", new_callable=AsyncMock, return_value=MOCK_LARGE_TIMESERIES
+        ):
+            result = await uis_get_education_data(UISDataInput(indicator_id="LR.AG15T99", country_code="CHE"))
             assert "Jahr" in result or "Year" in result or "year" in result
 
     # ─── Sortierungs-Invarianten ──────────────────────────────────────────────
@@ -408,6 +421,7 @@ class TestOutputQuality:
     @pytest.mark.asyncio
     async def test_compare_rank_column_starts_at_1(self):
         """Rang-Spalte im Vergleich muss mit 1 beginnen."""
+
         async def mock_data(indicator, geo_unit=None, **kwargs):
             return MOCK_SINGLE_OBS(geo_unit, 95.0)
 
@@ -420,11 +434,10 @@ class TestOutputQuality:
     @pytest.mark.asyncio
     async def test_timeseries_sorted_chronologically(self):
         """Zeitreihe soll chronologisch (1990→2023) sortiert sein."""
-        with patch("global_education_mcp.server.uis_get_data",
-                   new_callable=AsyncMock, return_value=MOCK_LARGE_TIMESERIES):
-            result = await uis_get_education_data(
-                UISDataInput(indicator_id="LR.AG15T99", country_code="CHE")
-            )
+        with patch(
+            "global_education_mcp.server.uis_get_data", new_callable=AsyncMock, return_value=MOCK_LARGE_TIMESERIES
+        ):
+            result = await uis_get_education_data(UISDataInput(indicator_id="LR.AG15T99", country_code="CHE"))
             idx_1990 = result.find("1990")
             idx_2023 = result.find("2023")
             assert idx_1990 < idx_2023, "1990 muss vor 2023 erscheinen"
@@ -474,8 +487,7 @@ class TestResilienceAndFailureCascades:
     @pytest.mark.asyncio
     async def test_all_countries_fail_in_compare_returns_error_message(self):
         """Alle Länder-Abfragen scheitern: Saubere Fehlermeldung statt Exception."""
-        with patch("global_education_mcp.server.uis_get_data",
-                   side_effect=Exception("All down")):
+        with patch("global_education_mcp.server.uis_get_data", side_effect=Exception("All down")):
             params = UISCompareInput(
                 indicator_id="LR.AG15T99",
                 country_codes=["CHE", "DEU", "AUT"],
@@ -487,19 +499,15 @@ class TestResilienceAndFailureCascades:
     @pytest.mark.asyncio
     async def test_profile_with_all_indicators_failing(self):
         """Länderprofil wenn alle 10 Indikator-Abfragen scheitern."""
-        with patch("global_education_mcp.server.uis_get_data",
-                   side_effect=Exception("API down")):
-            result = await uis_country_education_profile(
-                UISCountryProfileInput(country_code="CHE")
-            )
+        with patch("global_education_mcp.server.uis_get_data", side_effect=Exception("API down")):
+            result = await uis_country_education_profile(UISCountryProfileInput(country_code="CHE"))
             assert isinstance(result, str)
             assert "Bildungsprofil" in result or "CHE" in result
 
     @pytest.mark.asyncio
     async def test_benchmark_with_complete_api_failure(self):
         """Benchmark wenn UIS komplett nicht erreichbar."""
-        with patch("global_education_mcp.server.uis_get_data",
-                   side_effect=httpx.ConnectError("Network unreachable")):
+        with patch("global_education_mcp.server.uis_get_data", side_effect=httpx.ConnectError("Network unreachable")):
             result = await education_benchmark_countries(
                 CrossSourceInput(country_codes=["CHE", "DEU"], focus="spending")
             )
@@ -515,20 +523,18 @@ class TestResilienceAndFailureCascades:
         """
         from mcp.shared.exceptions import MCPError
 
-        with patch("global_education_mcp.server.oecd_get_education_data",
-                   side_effect=httpx.TimeoutException("Timeout")):
+        with patch(
+            "global_education_mcp.server.oecd_get_education_data", side_effect=httpx.TimeoutException("Timeout")
+        ):
             with pytest.raises(MCPError) as exc_info:
-                await oecd_get_education_indicator(
-                    OECDDataInput(dataflow_id="EAG_FISC", countries=["CHE"])
-                )
+                await oecd_get_education_indicator(OECDDataInput(dataflow_id="EAG_FISC", countries=["CHE"]))
             # Kontext bleibt in der Error-Message erhalten (Debug-Hinweis).
             assert "EAG_FISC" in str(exc_info.value)
 
     @pytest.mark.asyncio
     async def test_uis_versions_api_failure_returns_string(self):
         """Versionsabfrage-Fehler soll String zurückgeben."""
-        with patch("global_education_mcp.server.uis_get_versions",
-                   side_effect=Exception("Version API unavailable")):
+        with patch("global_education_mcp.server.uis_get_versions", side_effect=Exception("Version API unavailable")):
             result = await uis_list_versions()
             assert isinstance(result, str)
             assert len(result) > 0
@@ -558,19 +564,18 @@ class TestResilienceAndFailureCascades:
     @pytest.mark.asyncio
     async def test_oecd_empty_datasets_returns_hint(self):
         """Leere OECD-Antwort soll hilfreichen Tipp zur Dataflow-ID geben."""
-        with patch("global_education_mcp.server.oecd_get_education_data",
-                   new_callable=AsyncMock,
-                   return_value={"dataSets": [], "structure": {}}):
-            result = await oecd_get_education_indicator(
-                OECDDataInput(dataflow_id="EAG_NONEXISTENT")
-            )
+        with patch(
+            "global_education_mcp.server.oecd_get_education_data",
+            new_callable=AsyncMock,
+            return_value={"dataSets": [], "structure": {}},
+        ):
+            result = await oecd_get_education_indicator(OECDDataInput(dataflow_id="EAG_NONEXISTENT"))
             assert "EAG_NONEXISTENT" in result or "keine Daten" in result.lower()
 
     @pytest.mark.asyncio
     async def test_country_list_api_failure_shows_known_countries(self):
         """Bei API-Ausfall sollen mindestens CHE/DEU/AUT/FIN als Fallback erscheinen."""
-        with patch("global_education_mcp.server.uis_get_geo_units",
-                   side_effect=Exception("Geo API down")):
+        with patch("global_education_mcp.server.uis_get_geo_units", side_effect=Exception("Geo API down")):
             result = await uis_list_countries(UISGeoUnitsInput())
             for code in ["CHE", "DEU", "AUT", "FIN"]:
                 assert code in result, f"Fallback-Land {code} fehlt im Output"
@@ -578,8 +583,7 @@ class TestResilienceAndFailureCascades:
     @pytest.mark.asyncio
     async def test_indicators_api_failure_shows_known_indicators(self):
         """Bei API-Ausfall: Mindestens LR.AG15T99 und CR.1 als Fallback."""
-        with patch("global_education_mcp.server.uis_get_indicators",
-                   side_effect=Exception("Indicators API down")):
+        with patch("global_education_mcp.server.uis_get_indicators", side_effect=Exception("Indicators API down")):
             result = await uis_list_indicators(UISIndicatorsInput())
             assert "LR.AG15T99" in result
             assert "CR.1" in result
@@ -601,7 +605,7 @@ class TestSubjectMatterCorrectness:
     def test_sdg4_core_indicators_all_present(self):
         """Die 4 SDG-4-Kerndimensionen müssen abgedeckt sein."""
         # SDG-4: Abschluss, Alphabetisierung, Ausgaben, Gleichstellung
-        assert "CR.1" in UNESCO_EDUCATION_INDICATORS        # Abschluss Primar
+        assert "CR.1" in UNESCO_EDUCATION_INDICATORS  # Abschluss Primar
         assert "LR.AG15T24" in UNESCO_EDUCATION_INDICATORS  # Alphabetisierung Jugendliche
         assert "XGDP.FSGOV" in UNESCO_EDUCATION_INDICATORS  # Ausgaben
         assert "GPI.NERA.1" in UNESCO_EDUCATION_INDICATORS  # Gleichstellung
@@ -641,9 +645,7 @@ class TestSubjectMatterCorrectness:
             return MOCK_SINGLE_OBS(geo_unit, 95.0)
 
         with patch("global_education_mcp.server.uis_get_data", side_effect=capture_calls):
-            await education_benchmark_countries(
-                CrossSourceInput(country_codes=["CHE", "DEU"], focus="literacy")
-            )
+            await education_benchmark_countries(CrossSourceInput(country_codes=["CHE", "DEU"], focus="literacy"))
         assert "LR.AG15T99" in called_indicators, "Erwachsenen-Alphabetisierung fehlt"
         assert "LR.AG15T24" in called_indicators, "Jugend-Alphabetisierung fehlt"
 
@@ -657,9 +659,7 @@ class TestSubjectMatterCorrectness:
             return MOCK_SINGLE_OBS(geo_unit, 5.2)
 
         with patch("global_education_mcp.server.uis_get_data", side_effect=capture_calls):
-            await education_benchmark_countries(
-                CrossSourceInput(country_codes=["CHE", "DEU"], focus="spending")
-            )
+            await education_benchmark_countries(CrossSourceInput(country_codes=["CHE", "DEU"], focus="spending"))
         assert "XGDP.FSGOV" in called_indicators, "BIP-Bildungsausgaben-Indikator fehlt"
 
     @pytest.mark.asyncio
@@ -672,9 +672,7 @@ class TestSubjectMatterCorrectness:
             return MOCK_SINGLE_OBS(geo_unit, 15.0)
 
         with patch("global_education_mcp.server.uis_get_data", side_effect=capture_calls):
-            await education_benchmark_countries(
-                CrossSourceInput(country_codes=["CHE", "DEU"], focus="teachers")
-            )
+            await education_benchmark_countries(CrossSourceInput(country_codes=["CHE", "DEU"], focus="teachers"))
         assert any("PTR" in ind for ind in called_indicators), "PTR-Indikator fehlt im teachers-Benchmark"
 
     @pytest.mark.asyncio
@@ -687,9 +685,7 @@ class TestSubjectMatterCorrectness:
             return MOCK_SINGLE_OBS(geo_unit, 98.0)
 
         with patch("global_education_mcp.server.uis_get_data", side_effect=capture_calls):
-            await education_benchmark_countries(
-                CrossSourceInput(country_codes=["CHE", "DEU"], focus="enrollment")
-            )
+            await education_benchmark_countries(CrossSourceInput(country_codes=["CHE", "DEU"], focus="enrollment"))
         assert any("NERA" in ind for ind in called_indicators), "NERA-Indikator fehlt im enrollment-Benchmark"
 
     # ─── Länderprofil: 10 Kernindikatoren ────────────────────────────────────
@@ -718,8 +714,7 @@ class TestSubjectMatterCorrectness:
                 {"geoUnit": "CHE", "geoUnitName": "Switzerland", "year": 2015, "value": 92.0},
             ]
         }
-        with patch("global_education_mcp.server.uis_get_data",
-                   new_callable=AsyncMock, return_value=mock_multi_year):
+        with patch("global_education_mcp.server.uis_get_data", new_callable=AsyncMock, return_value=mock_multi_year):
             result = await uis_country_education_profile(UISCountryProfileInput(country_code="CHE"))
         assert "99.2" in result, "Neuester Wert (99.2, 2022) muss im Profil erscheinen"
         assert "85.0" not in result, "Alter Wert (85.0, 2010) darf nicht im Profil erscheinen"
@@ -739,6 +734,7 @@ class TestPerformanceAndConcurrency:
     @pytest.mark.asyncio
     async def test_benchmark_completes_within_reasonable_time(self):
         """5-Länder-Benchmark (gemockt) soll schnell abgeschlossen sein."""
+
         async def fast_mock(indicator, geo_unit=None, **kwargs):
             await asyncio.sleep(0.001)  # simuliert minimale API-Latenz
             return MOCK_SINGLE_OBS(geo_unit, 90.0)
@@ -757,6 +753,7 @@ class TestPerformanceAndConcurrency:
     @pytest.mark.asyncio
     async def test_concurrent_profile_requests_do_not_interfere(self):
         """3 parallele Profilanfragen sollen sich nicht gegenseitig beeinflussen."""
+
         async def mock_data(indicator, geo_unit=None, **kwargs):
             await asyncio.sleep(0.005)
             return MOCK_SINGLE_OBS(geo_unit, 95.0)
@@ -775,17 +772,15 @@ class TestPerformanceAndConcurrency:
     @pytest.mark.asyncio
     async def test_concurrent_compare_requests_independent(self):
         """3 parallele Vergleiche – jeder gibt sein eigenes Ergebnis zurück."""
+
         async def mock_data(indicator, geo_unit=None, **kwargs):
             return MOCK_SINGLE_OBS(geo_unit, 95.0)
 
         with patch("global_education_mcp.server.uis_get_data", side_effect=mock_data):
             r1, r2, r3 = await asyncio.gather(
-                uis_compare_countries(UISCompareInput(
-                    indicator_id="LR.AG15T99", country_codes=["CHE", "DEU"])),
-                uis_compare_countries(UISCompareInput(
-                    indicator_id="CR.1", country_codes=["FIN", "SGP"])),
-                uis_compare_countries(UISCompareInput(
-                    indicator_id="XGDP.FSGOV", country_codes=["AUT", "FRA"])),
+                uis_compare_countries(UISCompareInput(indicator_id="LR.AG15T99", country_codes=["CHE", "DEU"])),
+                uis_compare_countries(UISCompareInput(indicator_id="CR.1", country_codes=["FIN", "SGP"])),
+                uis_compare_countries(UISCompareInput(indicator_id="XGDP.FSGOV", country_codes=["AUT", "FRA"])),
             )
         assert "LR.AG15T99" in r1
         assert "CR.1" in r2
@@ -794,16 +789,29 @@ class TestPerformanceAndConcurrency:
     @pytest.mark.asyncio
     async def test_15_countries_compare_returns_all_in_output(self):
         """Maximum 15-Länder-Vergleich: Alle müssen im Output erscheinen."""
-        codes_15 = ["CHE", "DEU", "AUT", "FIN", "SGP", "KOR", "JPN", "FRA",
-                    "SWE", "NOR", "DNK", "NLD", "BEL", "ESP", "ITA"]
+        codes_15 = [
+            "CHE",
+            "DEU",
+            "AUT",
+            "FIN",
+            "SGP",
+            "KOR",
+            "JPN",
+            "FRA",
+            "SWE",
+            "NOR",
+            "DNK",
+            "NLD",
+            "BEL",
+            "ESP",
+            "ITA",
+        ]
 
         async def mock_data(indicator, geo_unit=None, **kwargs):
             return MOCK_SINGLE_OBS(geo_unit, 90.0 + len(geo_unit))
 
         with patch("global_education_mcp.server.uis_get_data", side_effect=mock_data):
-            result = await uis_compare_countries(
-                UISCompareInput(indicator_id="LR.AG15T99", country_codes=codes_15)
-            )
+            result = await uis_compare_countries(UISCompareInput(indicator_id="LR.AG15T99", country_codes=codes_15))
         for code in codes_15:
             assert code in result, f"Land {code} fehlt im 15-Länder-Vergleich"
 
@@ -878,9 +886,13 @@ class TestRealisticSchulامtScenarios:
         Vollständiges Länderprofil Schweiz für Berichterstattung.
         """
         profile_data = {
-            "LR.AG15T99": 99.0, "LR.AG15T24": 99.5,
-            "NERA.1": 97.0, "NERA.2": 94.0,
-            "CR.1": 98.0, "CR.2": 96.0, "CR.3": 89.0,
+            "LR.AG15T99": 99.0,
+            "LR.AG15T24": 99.5,
+            "NERA.1": 97.0,
+            "NERA.2": 94.0,
+            "CR.1": 98.0,
+            "CR.2": 96.0,
+            "CR.3": 89.0,
             "XGDP.FSGOV": 5.3,
             "PTR.1": 14.2,
             "GPI.NERA.1": 1.01,
@@ -888,17 +900,16 @@ class TestRealisticSchulامtScenarios:
 
         async def mock_data(indicator, geo_unit=None, **kwargs):
             val = profile_data.get(indicator, 90.0)
-            return {"observations": [{"geoUnit": "CHE", "geoUnitName": "Switzerland",
-                                      "year": 2022, "value": val}]}
+            return {"observations": [{"geoUnit": "CHE", "geoUnitName": "Switzerland", "year": 2022, "value": val}]}
 
         with patch("global_education_mcp.server.uis_get_data", side_effect=mock_data):
             result = await uis_country_education_profile(
                 UISCountryProfileInput(country_code="CHE", latest_year_only=True)
             )
 
-        assert "5.3" in result    # Bildungsausgaben
-        assert "14.2" in result   # Schüler-Lehrer-Verhältnis
-        assert "99.0" in result   # Alphabetisierung
+        assert "5.3" in result  # Bildungsausgaben
+        assert "14.2" in result  # Schüler-Lehrer-Verhältnis
+        assert "99.0" in result  # Alphabetisierung
 
     @pytest.mark.asyncio
     async def test_scenario_teacher_shortage_analysis(self):
@@ -961,15 +972,14 @@ class TestRealisticSchulامtScenarios:
             "structure": {
                 "dimensions": {
                     "observation": [
-                        {"id": "REF_AREA", "name": "Country", "values": [
-                            {"id": "CHE"}, {"id": "DEU"}, {"id": "AUT"}
-                        ]},
+                        {"id": "REF_AREA", "name": "Country", "values": [{"id": "CHE"}, {"id": "DEU"}, {"id": "AUT"}]},
                     ]
                 }
             },
         }
-        with patch("global_education_mcp.server.oecd_get_education_data",
-                   new_callable=AsyncMock, return_value=mock_salary_data):
+        with patch(
+            "global_education_mcp.server.oecd_get_education_data", new_callable=AsyncMock, return_value=mock_salary_data
+        ):
             result = await oecd_get_education_indicator(
                 OECDDataInput(
                     dataflow_id="EAG_PERS_SALARY",
@@ -991,8 +1001,7 @@ class TestRealisticSchulامtScenarios:
                 for c, v in [("CHE", 99.0), ("DEU", 99.1), ("MLI", 33.0), ("NER", 27.0)]
             ]
         }
-        with patch("global_education_mcp.server.uis_get_data",
-                   new_callable=AsyncMock, return_value=global_data):
+        with patch("global_education_mcp.server.uis_get_data", new_callable=AsyncMock, return_value=global_data):
             result = await uis_get_education_data(
                 UISDataInput(indicator_id="LR.AG15T99")  # kein country_code
             )

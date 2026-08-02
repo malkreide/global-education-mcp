@@ -61,9 +61,7 @@ async def _ctx_info(ctx: Optional[Context], message: str) -> None:
             pass
 
 
-async def _ctx_progress(
-    ctx: Optional[Context], current: float, total: float, message: str = ""
-) -> None:
+async def _ctx_progress(ctx: Optional[Context], current: float, total: float, message: str = "") -> None:
     """ctx.report_progress() if available, else no-op."""
     if ctx is not None:
         try:
@@ -131,6 +129,7 @@ async def lifespan(_server: "MCPServer"):
     finally:
         api_client.set_shared_client(None)
         await client.aclose()
+
 
 # ─── Server Setup ─────────────────────────────────────────────────────────────
 
@@ -219,11 +218,7 @@ async def uis_list_indicators(params: UISIndicatorsInput) -> str:
         # Freitextfilter anwenden
         if params.search:
             search_lower = params.search.lower()
-            indicators = [
-                i
-                for i in indicators
-                if search_lower in json.dumps(i).lower()
-            ]
+            indicators = [i for i in indicators if search_lower in json.dumps(i).lower()]
 
         # Limit anwenden
         indicators = indicators[: params.limit]
@@ -320,13 +315,9 @@ async def uis_list_countries(params: UISGeoUnitsInput) -> str:
         # Filter anwenden
         if params.search:
             search_lower = params.search.lower()
-            geo_units = [
-                g for g in geo_units if search_lower in json.dumps(g).lower()
-            ]
+            geo_units = [g for g in geo_units if search_lower in json.dumps(g).lower()]
         if params.entity_type:
-            geo_units = [
-                g for g in geo_units if g.get("entityType", "").upper() == params.entity_type.upper()
-            ]
+            geo_units = [g for g in geo_units if g.get("entityType", "").upper() == params.entity_type.upper()]
 
         if not geo_units:
             return "_Keine geografischen Einheiten gefunden._"
@@ -479,8 +470,7 @@ class UISCompareInput(BaseModel):
     )
     country_codes: list[str] = Field(
         ...,
-        description="Liste von ISO Alpha-3 Codes, z.B. ['CHE', 'DEU', 'AUT', 'FIN']. "
-        "Maximal 15 Länder pro Anfrage.",
+        description="Liste von ISO Alpha-3 Codes, z.B. ['CHE', 'DEU', 'AUT', 'FIN']. Maximal 15 Länder pro Anfrage.",
         min_length=2,
         max_length=15,
     )
@@ -503,9 +493,7 @@ class UISCompareInput(BaseModel):
     },
 )
 @logged_tool
-async def uis_compare_countries(
-    params: UISCompareInput, ctx: Optional[Context] = None
-) -> str:
+async def uis_compare_countries(params: UISCompareInput, ctx: Optional[Context] = None) -> str:
     """Vergleicht Bildungsindikatoren zwischen mehreren Ländern (UNESCO UIS).
 
     Ideal für den direkten internationalen Vergleich: Wie steht die Schweiz
@@ -522,9 +510,7 @@ async def uis_compare_countries(
     errors: list[str] = []
 
     codes = params.country_codes[:15]
-    await _ctx_info(
-        ctx, f"Vergleiche {len(codes)} Länder für Indikator {params.indicator_id}"
-    )
+    await _ctx_info(ctx, f"Vergleiche {len(codes)} Länder für Indikator {params.indicator_id}")
 
     progress = {"done": 0}
 
@@ -581,9 +567,7 @@ async def uis_compare_countries(
         "|------|------|------|------|------|",
     ]
     for i, r in enumerate(results, 1):
-        lines.append(
-            f"| {i} | {r['country_name']} | {r['country']} | {r['value']} | {r['year']} |"
-        )
+        lines.append(f"| {i} | {r['country_name']} | {r['country']} | {r['value']} | {r['year']} |")
 
     if errors:
         lines.append("")
@@ -623,9 +607,7 @@ class UISCountryProfileInput(BaseModel):
     },
 )
 @logged_tool
-async def uis_country_education_profile(
-    params: UISCountryProfileInput, ctx: Optional[Context] = None
-) -> str:
+async def uis_country_education_profile(params: UISCountryProfileInput, ctx: Optional[Context] = None) -> str:
     """Erstellt ein umfassendes Bildungsprofil für ein Land via UNESCO UIS.
 
     Ruft automatisch die wichtigsten Schlüsselindikatoren ab:
@@ -671,9 +653,7 @@ async def uis_country_education_profile(
             return await uis_get_data(indicator=ind_id, geo_unit=params.country_code)
         finally:
             progress["done"] += 1
-            await _ctx_progress(
-                ctx, progress["done"], len(key_indicators), f"{ind_id} fertig"
-            )
+            await _ctx_progress(ctx, progress["done"], len(key_indicators), f"{ind_id} fertig")
 
     raw_responses = await asyncio.gather(
         *(fetch(ind_id) for ind_id, _ in key_indicators),
@@ -1022,8 +1002,7 @@ class CrossSourceInput(BaseModel):
 
     country_codes: list[str] = Field(
         ...,
-        description="Liste von ISO Alpha-3 Codes für Bildungsvergleich, "
-        "z.B. ['CHE', 'DEU', 'AUT', 'FIN', 'SGP'].",
+        description="Liste von ISO Alpha-3 Codes für Bildungsvergleich, z.B. ['CHE', 'DEU', 'AUT', 'FIN', 'SGP'].",
         min_length=2,
         max_length=10,
     )
@@ -1047,9 +1026,7 @@ class CrossSourceInput(BaseModel):
     },
 )
 @logged_tool
-async def education_benchmark_countries(
-    params: CrossSourceInput, ctx: Optional[Context] = None
-) -> str:
+async def education_benchmark_countries(params: CrossSourceInput, ctx: Optional[Context] = None) -> str:
     """Benchmarkt mehrere Länder auf einem Bildungsthema via UNESCO UIS.
 
     Automatisch werden die passenden Indikatoren für den gewählten Fokus
@@ -1123,9 +1100,7 @@ async def education_benchmark_countries(
                 return await uis_get_data(indicator=_ind_id, geo_unit=code)
             finally:
                 progress["done"] += 1
-                await _ctx_progress(
-                    ctx, progress["done"], total_calls, f"{_ind_id}/{code}"
-                )
+                await _ctx_progress(ctx, progress["done"], total_calls, f"{_ind_id}/{code}")
 
         raw_responses = await asyncio.gather(
             *(_fetch_bench(code) for code in params.country_codes),
@@ -1164,9 +1139,7 @@ async def education_benchmark_countries(
         lines.append("")
 
     lines.append("---")
-    lines.append(
-        "_Daten: UNESCO Institute for Statistics. Datenlücken entstehen durch fehlende nationale Meldungen._"
-    )
+    lines.append("_Daten: UNESCO Institute for Statistics. Datenlücken entstehen durch fehlende nationale Meldungen._")
     return "\n".join(lines)
 
 

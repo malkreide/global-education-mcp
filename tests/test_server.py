@@ -157,12 +157,14 @@ class TestFormatters:
 
     def test_handle_api_error_timeout(self):
         import httpx
+
         error = httpx.TimeoutException("timeout")
         result = handle_api_error(error, "test_context")
         assert "Zeitüberschreitung" in result or "timed out" in result.lower()
 
     def test_handle_api_error_404(self):
         import httpx
+
         mock_response = AsyncMock()
         mock_response.status_code = 404
         error = httpx.HTTPStatusError("not found", request=AsyncMock(), response=mock_response)
@@ -308,6 +310,7 @@ class TestUISTools:
     @pytest.mark.asyncio
     async def test_uis_get_education_data_error(self):
         import httpx
+
         mock_response = AsyncMock()
         mock_response.status_code = 400
         mock_response.text = "Bad Request"
@@ -416,6 +419,7 @@ class TestComplexWorkflows:
     @pytest.mark.asyncio
     async def test_uis_compare_countries_sorted_output(self):
         """Vergleich soll nach Wert sortiert sein."""
+
         def mock_uis_data(indicator, geo_unit=None, **kwargs):
             values = {"CHE": 99.2, "DEU": 99.0, "AUT": 98.5, "FIN": 99.5}
             if geo_unit in values:
@@ -490,7 +494,6 @@ class TestComplexWorkflows:
     @pytest.mark.asyncio
     async def test_education_benchmark_sorts_correctly(self):
         """Benchmark-Tabellen sollen nach Wert sortiert sein."""
-        call_count = 0
         countries_data = [
             ("CHE", 85.0),
             ("DEU", 92.0),
@@ -535,9 +538,7 @@ class TestComplexWorkflows:
             new_callable=AsyncMock,
             return_value=MOCK_UIS_OBSERVATIONS,
         ):
-            data_result = await uis_get_education_data(
-                UISDataInput(indicator_id="LR.AG15T99", country_code="CHE")
-            )
+            data_result = await uis_get_education_data(UISDataInput(indicator_id="LR.AG15T99", country_code="CHE"))
             assert "99" in data_result
 
         # Schritt 3: Vergleich erstellen
@@ -569,8 +570,13 @@ class TestLoggingSetup:
         from global_education_mcp.logging_setup import JSONFormatter
 
         record = logging.LogRecord(
-            name="test", level=logging.INFO, pathname="x.py", lineno=1,
-            msg="tool_call", args=None, exc_info=None,
+            name="test",
+            level=logging.INFO,
+            pathname="x.py",
+            lineno=1,
+            msg="tool_call",
+            args=None,
+            exc_info=None,
         )
         record.extra_fields = {"tool": "uis_list_indicators", "duration_ms": 42, "status": "ok"}
         out = JSONFormatter().format(record)
@@ -654,6 +660,7 @@ class TestErrorClassification:
 
     def test_other_exception_is_noop(self):
         from global_education_mcp.api_client import raise_if_transient
+
         # ValueError / generic Exception bleibt unbehandelt -> caller formatiert.
         raise_if_transient(ValueError("oops"))
 
@@ -676,14 +683,18 @@ class TestLoggedToolDecorator:
     @pytest.mark.asyncio
     async def test_decorator_logs_ok_status_on_success(self, caplog):
         import logging
-        with patch("global_education_mcp.server.uis_get_indicators",
-                   new_callable=AsyncMock, return_value=[]):
+
+        with patch("global_education_mcp.server.uis_get_indicators", new_callable=AsyncMock, return_value=[]):
             with caplog.at_level(logging.INFO, logger="global_education_mcp.tool"):
                 from global_education_mcp.server import uis_list_indicators
+
                 await uis_list_indicators(UISIndicatorsInput())
-        ok_records = [r for r in caplog.records
-                      if getattr(r, "extra_fields", {}).get("status") == "ok"
-                      and getattr(r, "extra_fields", {}).get("tool") == "uis_list_indicators"]
+        ok_records = [
+            r
+            for r in caplog.records
+            if getattr(r, "extra_fields", {}).get("status") == "ok"
+            and getattr(r, "extra_fields", {}).get("tool") == "uis_list_indicators"
+        ]
         assert len(ok_records) >= 1
 
 
@@ -711,9 +722,9 @@ class TestContextInjection:
     async def test_compare_countries_reports_per_country_progress(self):
         ctx = _MockContext()
         fake = {"observations": [{"value": 99.0, "year": 2023, "geoUnitName": "X"}]}
-        with patch("global_education_mcp.server.uis_get_data",
-                   new_callable=AsyncMock, return_value=fake):
+        with patch("global_education_mcp.server.uis_get_data", new_callable=AsyncMock, return_value=fake):
             from global_education_mcp.server import uis_compare_countries
+
             await uis_compare_countries(
                 UISCompareInput(
                     indicator_id="LR.AG15T99",
@@ -729,9 +740,9 @@ class TestContextInjection:
     async def test_country_profile_reports_indicator_progress(self):
         ctx = _MockContext()
         fake = {"observations": [{"value": 5.0, "year": 2022}]}
-        with patch("global_education_mcp.server.uis_get_data",
-                   new_callable=AsyncMock, return_value=fake):
+        with patch("global_education_mcp.server.uis_get_data", new_callable=AsyncMock, return_value=fake):
             from global_education_mcp.server import uis_country_education_profile
+
             await uis_country_education_profile(
                 UISCountryProfileInput(country_code="CHE"),
                 ctx=ctx,
@@ -744,9 +755,9 @@ class TestContextInjection:
     async def test_benchmark_reports_total_calls_progress(self):
         ctx = _MockContext()
         fake = {"observations": [{"value": 90.0, "year": 2023}]}
-        with patch("global_education_mcp.server.uis_get_data",
-                   new_callable=AsyncMock, return_value=fake):
+        with patch("global_education_mcp.server.uis_get_data", new_callable=AsyncMock, return_value=fake):
             from global_education_mcp.server import education_benchmark_countries
+
             await education_benchmark_countries(
                 CrossSourceInput(country_codes=["CHE", "DEU", "FIN"], focus="literacy"),
                 ctx=ctx,
@@ -759,9 +770,9 @@ class TestContextInjection:
     async def test_tools_work_without_ctx(self):
         """Backward-compat: Tests, die ctx weglassen, muessen weiter funktionieren."""
         fake = {"observations": [{"value": 99.0, "year": 2023}]}
-        with patch("global_education_mcp.server.uis_get_data",
-                   new_callable=AsyncMock, return_value=fake):
+        with patch("global_education_mcp.server.uis_get_data", new_callable=AsyncMock, return_value=fake):
             from global_education_mcp.server import uis_compare_countries
+
             # Ohne ctx-Argument -> Default None, kein crash
             result = await uis_compare_countries(
                 UISCompareInput(
@@ -774,16 +785,18 @@ class TestContextInjection:
     @pytest.mark.asyncio
     async def test_ctx_exception_does_not_break_tool(self):
         """Eine kaputte ctx.info darf den Tool-Call nicht zerlegen."""
+
         class BrokenCtx:
             async def info(self, *a, **kw):
                 raise RuntimeError("ctx is broken")
+
             async def report_progress(self, *a, **kw):
                 raise RuntimeError("ctx is broken")
 
         fake = {"observations": [{"value": 99.0, "year": 2023}]}
-        with patch("global_education_mcp.server.uis_get_data",
-                   new_callable=AsyncMock, return_value=fake):
+        with patch("global_education_mcp.server.uis_get_data", new_callable=AsyncMock, return_value=fake):
             from global_education_mcp.server import uis_compare_countries
+
             result = await uis_compare_countries(
                 UISCompareInput(
                     indicator_id="LR.AG15T99",
