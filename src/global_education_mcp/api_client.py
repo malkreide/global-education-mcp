@@ -34,6 +34,7 @@ def set_shared_client(client: Optional[httpx.AsyncClient]) -> None:
     global _shared_client
     _shared_client = client
 
+
 # ─── Basis-URLs ───────────────────────────────────────────────────────────────
 
 UNESCO_BASE_URL = "https://api.uis.unesco.org/api/public"
@@ -235,11 +236,7 @@ async def oecd_search_education_datasets(keyword: str) -> list[dict]:
         all_flows = data.get("data", {}).get("dataflows", [])
         # Filtern nach Keyword
         keyword_lower = keyword.lower()
-        return [
-            f
-            for f in all_flows
-            if keyword_lower in json.dumps(f).lower()
-        ]
+        return [f for f in all_flows if keyword_lower in json.dumps(f).lower()]
     except Exception:
         return []
 
