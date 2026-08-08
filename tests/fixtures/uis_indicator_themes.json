@@ -1,0 +1,14 @@
+{
+  "antwortgroesse_je_theme_parameter": {
+    "EDUCATION": 5063,
+    "CULTURE": 5063,
+    "bogus-theme-den-es-nicht-gibt": 5063,
+    "ohne Parameter": 5063
+  },
+  "tatsaechlich_je_theme": {
+    "EDUCATION": 4986,
+    "DEMOGRAPHIC_SOCIOECONOMIC": 35,
+    "CULTURE": 30,
+    "SCIENCE_TECHNOLOGY_INNOVATION": 12
+  }
+}

@@ -1,0 +1,489 @@
+[
+  {
+    "indicatorCode": "CR.1",
+    "name": "Completion rate, primary education, both sexes (%)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 2568,
+      "timeLine": {
+        "min": 1990,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "NATIONAL",
+          "REGIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "CR.1.F",
+    "name": "Completion rate, primary education, female (%)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 2575,
+      "timeLine": {
+        "min": 1990,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "NATIONAL",
+          "REGIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "CR.1.M",
+    "name": "Completion rate, primary education, male (%)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 2553,
+      "timeLine": {
+        "min": 1990,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "NATIONAL",
+          "REGIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "CR.2",
+    "name": "Completion rate, lower secondary education, both sexes (%)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 2644,
+      "timeLine": {
+        "min": 1990,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "REGIONAL",
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "CR.3",
+    "name": "Completion rate, upper secondary education, both sexes (%)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 2651,
+      "timeLine": {
+        "min": 1990,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "REGIONAL",
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "FTP.1",
+    "name": "Percentage of teachers in primary education who are female (%)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 17757,
+      "timeLine": {
+        "min": 1970,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "REGIONAL",
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "LR.AG15T24",
+    "name": "Youth literacy rate, population 15-24 years, both sexes (%)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 9979,
+      "timeLine": {
+        "min": 1970,
+        "max": 2024
+      },
+      "geoUnits": {
+        "types": [
+          "REGIONAL",
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "LR.AG15T24.F",
+    "name": "Youth literacy rate, population 15-24 years, female (%)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 10030,
+      "timeLine": {
+        "min": 1970,
+        "max": 2024
+      },
+      "geoUnits": {
+        "types": [
+          "REGIONAL",
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "LR.AG15T24.M",
+    "name": "Youth literacy rate, population 15-24 years, male (%)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 9939,
+      "timeLine": {
+        "min": 1970,
+        "max": 2024
+      },
+      "geoUnits": {
+        "types": [
+          "REGIONAL",
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "LR.AG15T99",
+    "name": "Adult literacy rate, population 15+ years, both sexes (%)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 9818,
+      "timeLine": {
+        "min": 1970,
+        "max": 2024
+      },
+      "geoUnits": {
+        "types": [
+          "REGIONAL",
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "NERT.1.CP",
+    "name": "Total net enrolment rate, primary, both sexes (%)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 4898,
+      "timeLine": {
+        "min": 1970,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "NERT.1.F.CP",
+    "name": "Total net enrolment rate, primary, female (%)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 3684,
+      "timeLine": {
+        "min": 1970,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "NERT.1.M.CP",
+    "name": "Total net enrolment rate, primary, male (%)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 3683,
+      "timeLine": {
+        "min": 1970,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "OFST.1.CP",
+    "name": "Out-of-school children of primary school age, both sexes (number)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 5733,
+      "timeLine": {
+        "min": 1970,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "REGIONAL",
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "TRTP.1",
+    "name": "Proportion of teachers with the minimum required qualifications in primary education, both sexes (%)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 5837,
+      "timeLine": {
+        "min": 1997,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "REGIONAL",
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "XGDP.FSGOV",
+    "name": "Government expenditure on education as a percentage of GDP (%)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 5159,
+      "timeLine": {
+        "min": 1970,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "XGDP.FSGOV.FFNTR",
+    "name": "Initial government expenditure on education as a percentage of GDP (%)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 4432,
+      "timeLine": {
+        "min": 1970,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "10",
+    "name": "Official entrance age to early childhood educational development (years)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 1885,
+      "timeLine": {
+        "min": 1972,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "10403",
+    "name": "Start month of the academic school year (tertiary education)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 5365,
+      "timeLine": {
+        "min": 1991,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "10404",
+    "name": "End month of the academic school year (tertiary education)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 5364,
+      "timeLine": {
+        "min": 1991,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "10405",
+    "name": "Start of the academic school year (tertiary education)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 11134,
+      "timeLine": {
+        "min": 1970,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "10406",
+    "name": "End of the academic school year (tertiary education)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 5387,
+      "timeLine": {
+        "min": 1991,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "13",
+    "name": "Theoretical duration of early childhood educational development (years)",
+    "theme": "EDUCATION",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 1875,
+      "timeLine": {
+        "min": 1972,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "200101",
+    "name": "Total population (thousands)",
+    "theme": "DEMOGRAPHIC_SOCIOECONOMIC",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 12820,
+      "timeLine": {
+        "min": 1970,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "NATIONAL"
+        ]
+      }
+    }
+  },
+  {
+    "indicatorCode": "200144",
+    "name": "Population aged 15-24 years (thousands)",
+    "theme": "DEMOGRAPHIC_SOCIOECONOMIC",
+    "lastDataUpdate": "02/09/2026",
+    "lastDataUpdateDescription": "February 2026 Data Release",
+    "dataAvailability": {
+      "totalRecordCount": 12820,
+      "timeLine": {
+        "min": 1970,
+        "max": 2025
+      },
+      "geoUnits": {
+        "types": [
+          "NATIONAL"
+        ]
+      }
+    }
+  }
+]

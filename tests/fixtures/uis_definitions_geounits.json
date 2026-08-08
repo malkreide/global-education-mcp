@@ -1,0 +1,242 @@
+[
+  {
+    "id": "AUT",
+    "name": "Austria",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "CHE",
+    "name": "Switzerland",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "DEU",
+    "name": "Germany",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "FRA",
+    "name": "France",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "ABW",
+    "name": "Aruba",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "AFG",
+    "name": "Afghanistan",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "AGO",
+    "name": "Angola",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "AIA",
+    "name": "Anguilla",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "ALA",
+    "name": "Åland Islands",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "ALB",
+    "name": "Albania",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "AND",
+    "name": "Andorra",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "ANT",
+    "name": "Netherlands Antilles",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "ARE",
+    "name": "United Arab Emirates",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "ARG",
+    "name": "Argentina",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "ARM",
+    "name": "Armenia",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "ASM",
+    "name": "American Samoa",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "ATG",
+    "name": "Antigua and Barbuda",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "AUS",
+    "name": "Australia",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "AZE",
+    "name": "Azerbaijan",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "BDI",
+    "name": "Burundi",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "BEL",
+    "name": "Belgium",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "BEN",
+    "name": "Benin",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "BFA",
+    "name": "Burkina Faso",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "BGD",
+    "name": "Bangladesh",
+    "type": "NATIONAL"
+  },
+  {
+    "id": "AIMS: Asia and the Pacific",
+    "name": "Asia and the Pacific",
+    "type": "REGIONAL",
+    "regionGroup": "AIMS"
+  },
+  {
+    "id": "AIMS: Central Asia",
+    "name": "Central Asia",
+    "type": "REGIONAL",
+    "regionGroup": "AIMS"
+  },
+  {
+    "id": "AIMS: East Asia",
+    "name": "East Asia",
+    "type": "REGIONAL",
+    "regionGroup": "AIMS"
+  },
+  {
+    "id": "AIMS: East Asia and the Pacific",
+    "name": "East Asia and the Pacific",
+    "type": "REGIONAL",
+    "regionGroup": "AIMS"
+  },
+  {
+    "id": "AIMS: Pacific",
+    "name": "Pacific",
+    "type": "REGIONAL",
+    "regionGroup": "AIMS"
+  },
+  {
+    "id": "AIMS: South and West Asia",
+    "name": "South and West Asia",
+    "type": "REGIONAL",
+    "regionGroup": "AIMS"
+  },
+  {
+    "id": "ALECSO: Gulf countries",
+    "name": "Gulf countries",
+    "type": "REGIONAL",
+    "regionGroup": "ALECSO"
+  },
+  {
+    "id": "ALECSO: Least developed countries",
+    "name": "Least developed countries",
+    "type": "REGIONAL",
+    "regionGroup": "ALECSO"
+  },
+  {
+    "id": "ALECSO: Maghreb countries",
+    "name": "Maghreb countries",
+    "type": "REGIONAL",
+    "regionGroup": "ALECSO"
+  },
+  {
+    "id": "ALECSO: Mashriq countries",
+    "name": "Mashriq countries",
+    "type": "REGIONAL",
+    "regionGroup": "ALECSO"
+  },
+  {
+    "id": "ALECSO: Member countries",
+    "name": "Member countries",
+    "type": "REGIONAL",
+    "regionGroup": "ALECSO"
+  },
+  {
+    "id": "CECC-SICA",
+    "name": "All countries",
+    "type": "REGIONAL",
+    "regionGroup": "CECC-SICA"
+  },
+  {
+    "id": "ECA: AMU (UNSDCode:98111)",
+    "name": "AMU (UNSDCode:98111)",
+    "type": "REGIONAL",
+    "regionGroup": "ECA"
+  },
+  {
+    "id": "ECA: African Union Commission (UNSDCode:98106)",
+    "name": "African Union Commission (UNSDCode:98106)",
+    "type": "REGIONAL",
+    "regionGroup": "ECA"
+  },
+  {
+    "id": "ECA: All countries (UNSDCode:98100)",
+    "name": "All countries (UNSDCode:98100)",
+    "type": "REGIONAL",
+    "regionGroup": "ECA"
+  },
+  {
+    "id": "ECA: CEN-SAD (UNSDCode:98112)",
+    "name": "CEN-SAD (UNSDCode:98112)",
+    "type": "REGIONAL",
+    "regionGroup": "ECA"
+  },
+  {
+    "id": "ECA: COMESA (UNSDCode:98113)",
+    "name": "COMESA (UNSDCode:98113)",
+    "type": "REGIONAL",
+    "regionGroup": "ECA"
+  },
+  {
+    "id": "ECA: Central Africa (UNSDCode:98101)",
+    "name": "Central Africa (UNSDCode:98101)",
+    "type": "REGIONAL",
+    "regionGroup": "ECA"
+  },
+  {
+    "id": "ECA: EAC (UNSDCode:98114)",
+    "name": "EAC (UNSDCode:98114)",
+    "type": "REGIONAL",
+    "regionGroup": "ECA"
+  },
+  {
+    "id": "ECA: ECA: Oil LDCs (UNSDCode:98122)",
+    "name": "ECA: Oil LDCs (UNSDCode:98122)",
+    "type": "REGIONAL",
+    "regionGroup": "ECA"
+  }
+]

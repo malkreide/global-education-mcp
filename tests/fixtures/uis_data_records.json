@@ -1,0 +1,118 @@
+{
+  "hints": [],
+  "records": [
+    {
+      "indicatorId": "CR.1",
+      "geoUnit": "CHE",
+      "year": 2006,
+      "value": 97.72,
+      "magnitude": null,
+      "qualifier": null
+    },
+    {
+      "indicatorId": "CR.1",
+      "geoUnit": "CHE",
+      "year": 2007,
+      "value": 97.82,
+      "magnitude": null,
+      "qualifier": null
+    },
+    {
+      "indicatorId": "CR.1",
+      "geoUnit": "CHE",
+      "year": 2010,
+      "value": 99.2,
+      "magnitude": null,
+      "qualifier": null
+    },
+    {
+      "indicatorId": "CR.1",
+      "geoUnit": "CHE",
+      "year": 2011,
+      "value": 99.095,
+      "magnitude": null,
+      "qualifier": null
+    },
+    {
+      "indicatorId": "CR.1",
+      "geoUnit": "CHE",
+      "year": 2012,
+      "value": 99.165,
+      "magnitude": null,
+      "qualifier": null
+    },
+    {
+      "indicatorId": "CR.1",
+      "geoUnit": "CHE",
+      "year": 2013,
+      "value": 99.2,
+      "magnitude": null,
+      "qualifier": null
+    },
+    {
+      "indicatorId": "CR.1",
+      "geoUnit": "CHE",
+      "year": 2014,
+      "value": 99.425,
+      "magnitude": null,
+      "qualifier": null
+    },
+    {
+      "indicatorId": "CR.1",
+      "geoUnit": "CHE",
+      "year": 2015,
+      "value": 99.4,
+      "magnitude": null,
+      "qualifier": null
+    },
+    {
+      "indicatorId": "CR.1",
+      "geoUnit": "CHE",
+      "year": 2016,
+      "value": 99.32,
+      "magnitude": null,
+      "qualifier": null
+    },
+    {
+      "indicatorId": "CR.1",
+      "geoUnit": "CHE",
+      "year": 2017,
+      "value": 99.25,
+      "magnitude": null,
+      "qualifier": null
+    },
+    {
+      "indicatorId": "CR.1",
+      "geoUnit": "CHE",
+      "year": 2018,
+      "value": 99.165,
+      "magnitude": null,
+      "qualifier": null
+    },
+    {
+      "indicatorId": "CR.1",
+      "geoUnit": "CHE",
+      "year": 2019,
+      "value": 98.905,
+      "magnitude": null,
+      "qualifier": null
+    },
+    {
+      "indicatorId": "CR.1",
+      "geoUnit": "CHE",
+      "year": 2020,
+      "value": 99.17,
+      "magnitude": null,
+      "qualifier": null
+    },
+    {
+      "indicatorId": "CR.1",
+      "geoUnit": "CHE",
+      "year": 2021,
+      "value": 99.35000000000001,
+      "magnitude": null,
+      "qualifier": null
+    }
+  ],
+  "indicatorMetadata": []
+}

@@ -12,7 +12,7 @@
 [![MCP](https://img.shields.io/badge/MCP-Model%20Context%20Protocol-purple)](https://modelcontextprotocol.io/)
 [![Daten: UNESCO UIS](https://img.shields.io/badge/Daten-UNESCO%20UIS-blue)](https://uis.unesco.org/)
 [![Daten: OECD](https://img.shields.io/badge/Daten-OECD%20EaG-green)](https://www.oecd.org/education/education-at-a-glance/)
-[![Tests](https://img.shields.io/badge/Tests-113-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-169-brightgreen)](tests/)
 [![Kein API-Key](https://img.shields.io/badge/API%20Key-nicht%20erforderlich-success)](https://uis.unesco.org/bdds)
 ![CI](https://github.com/malkreide/global-education-mcp/actions/workflows/ci.yml/badge.svg)
 
@@ -276,8 +276,13 @@ global-education-mcp/
 │   ├── __init__.py                 # Paket-Metadaten, Version
 │   ├── server.py                   # FastMCP-Server, 10 Tools, 2 Ressourcen, 2 Prompts
 │   └── api_client.py               # HTTP-Client, UNESCO UIS + OECD Wrapper, Formatter
+├── scripts/
+│   └── record_fixtures.py          # Zeichnet die Fixtures von der Live-UIS-API auf
 ├── tests/
-│   ├── test_server.py              # 39 Tests (einfach / mittel / komplex)
+│   ├── fixtures/                   # Aufgezeichnete Antworten + PROVENANCE.md (Quelle, Datum, SHA-256)
+│   ├── fixture_data.py             # Fixture-Loader – wirft bei fehlendem Namen
+│   ├── test_source_contract.py     # Vertrag gegen die Aufzeichnung + Live-Tests
+│   ├── test_server.py              # 42 Tests (einfach / mittel / komplex)
 │   └── test_extended_scenarios.py  # 74 Tests in 8 Kategorien
 ├── claude_desktop_config.json      # Einsatzbereite Claude Desktop Konfiguration
 ├── pyproject.toml                  # Build-Konfiguration (hatchling)
@@ -301,6 +306,9 @@ global-education-mcp/
 - **Historische Tiefe:** Die Datenverfügbarkeit der UNESCO UIS variiert je nach Indikator; nicht alle Zeitreihen reichen bis 1970 zurück
 - **Sprache:** UNESCO UIS liefert Indikatorbezeichnungen nur auf Englisch; OECD-Labels können je nach Dataflow variieren
 - **Keine Echtzeitdaten:** Beide Quellen veröffentlichen jährlich – die Zahlen entsprechen der neuesten publizierten Ausgabe, nicht aktuellen Schulstatistiken
+- **Geschätzte Werte sind ausgewiesen:** Die UIS kennzeichnet einen Teil ihrer Beobachtungen als `UIS_EST` (UIS-Schätzung) oder `NAT_EST` (nationale Schätzung) – bei `LR.AG15T99` sind das 1'306 von 9'818 Werten. Die Statusspalte benennt es; ein nicht gekennzeichneter Wert ist ein gemeldeter.
+- **Datenzeilen führen den ISO-Code, nicht den Ländernamen:** Klarnamen liefert `uis_list_countries`. Die Datenwerkzeuge geben den Code aus, statt einen Namen zu erfinden.
+- **Ein unbekannter Ländercode ist kein Fehlerstatus:** Die UIS antwortet mit HTTP 200 und leerer Treffermenge und nennt den Grund im Feld `hints` desselben Payloads. Die Werkzeuge geben diesen Hinweis aus – sonst sähe ein Tippfehler genauso aus wie ein Land ohne Daten.
 
 ---
 
@@ -371,11 +379,14 @@ bricht. Upgrade-Pfad siehe `CHANGELOG.md`.
 # Unit-Tests (kein API-Key, keine Netzwerkverbindung erforderlich)
 PYTHONPATH=src pytest tests/ -v -m "not integration"
 
-# Vollständige Testsuite inkl. Live-API-Smoke-Tests
+# Vollständige Testsuite inkl. der Live-Tests gegen api.uis.unesco.org
 PYTHONPATH=src pytest tests/ -v
+
+# Fixtures neu aufzeichnen (schreibt tests/fixtures/ + PROVENANCE.md)
+PYTHONPATH=src python scripts/record_fixtures.py
 ```
 
-**113 Tests** in zwei Dateien und drei Komplexitätsstufen:
+**169 Tests** – 152 offline, 17 gegen die Live-Quelle.
 
 | Kategorie | Tests | Beschreibung |
 |---|---|---|
@@ -386,7 +397,31 @@ PYTHONPATH=src pytest tests/ -v
 | Fachliche Korrektheit | 10 | SDG-4-Abdeckung, korrekte Indikatoren je Fokus |
 | Performanz & Parallelität | 4 | Concurrent Requests, Zeitlimits |
 | Schulamt-Szenarien | 7 | DACH-Vergleich, PISA, Lehrpersonenmangel |
-| Live API Smoke Tests | 4 | Echte Endpunkte (via `--integration`-Flag) |
+| Quellenvertrag gegen die Aufzeichnung | 23 | Feldnamen, Umschlag, Query-Parameter, Hinweise |
+| Live-Tests (`-m integration`) | 17 | Die Pfade, die Form und die Werkzeuge selbst |
+
+### Warum die Fixtures aufgezeichnet und nicht geschrieben sind
+
+Ein handgeschriebener Mock kodiert die Annahme seines Autors und kann sie
+deshalb prinzipiell nicht widerlegen: Produktivcode und Fixture stammen aus
+demselben Kopf, derselben Stunde, derselben Lektüre der Doku. Wo beide irren,
+irren beide gleich — und die Suite bleibt grün.
+
+Das ist hier kein Gedankenspiel. Vor dem 2026-08-08 hatte dieses Repo **128
+grüne Tests**, während drei seiner vier UNESCO-Pfade mit HTTP 404 antworteten
+und jede Datenabfrage eine leere Liste zurückbrachte. Die Mocks trugen
+dieselben erfundenen Feldnamen wie der Produktivcode (`observations`,
+`indicatorId`, `entityType`), und deshalb konnte ihnen nichts widersprechen.
+
+Jede Fixture unter `tests/fixtures/` ist jetzt eine aufgezeichnete Antwort.
+`PROVENANCE.md` nennt je Datei die Quell-URL, das Aufzeichnungsdatum, die
+Auswahlregel und den SHA-256. Ohne Datum ist «aufgezeichnet» nach zwei Jahren
+von «ausgedacht» nicht mehr zu unterscheiden — die Datei sieht gleich aus.
+
+Drei der Fixtures sind **Kontrollen**: ein erfundener `theme`-Wert, ein
+erfundener Ländercode und dieselbe Zeitreihe zweimal, mit unterschiedlichen
+Parameternamen abgefragt. Ohne sie zeigt eine Messung nur, was *ich* bekommen
+habe; mit ihnen zeigt sie, was die Quelle tatsächlich unterscheidet.
 
 ---
 

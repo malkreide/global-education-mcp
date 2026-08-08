@@ -1,0 +1,10 @@
+{
+  "hints": [
+    {
+      "code": "UIS::HINT::003",
+      "message": "The geoUnit could not be found, XXX"
+    }
+  ],
+  "records": [],
+  "indicatorMetadata": []
+}

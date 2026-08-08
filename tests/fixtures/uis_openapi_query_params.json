@@ -1,0 +1,43 @@
+{
+  "/api/public/data/indicators": [
+    "end",
+    "footnotes",
+    "geoUnit",
+    "geoUnitType",
+    "indicator",
+    "indicatorMetadata",
+    "start",
+    "version"
+  ],
+  "/api/public/data/indicators/export": [
+    "end",
+    "footnotes",
+    "format",
+    "geoUnit",
+    "geoUnitType",
+    "indicator",
+    "indicatorMetadata",
+    "start",
+    "version"
+  ],
+  "/api/public/definitions/geounits": [
+    "version"
+  ],
+  "/api/public/definitions/geounits/export": [
+    "format",
+    "version"
+  ],
+  "/api/public/definitions/indicators": [
+    "disaggregations",
+    "glossaryTerms",
+    "version"
+  ],
+  "/api/public/definitions/indicators/export": [
+    "disaggregations",
+    "format",
+    "glossaryTerms",
+    "version"
+  ],
+  "/api/public/versions/default": [],
+  "/api/public/versions": []
+}

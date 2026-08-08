@@ -1,0 +1,407 @@
+[
+  {
+    "version": "20260507-91260335",
+    "publicationDate": "2026-05-08T16:58:36.233Z",
+    "description": "string",
+    "themeDataStatus": [
+      {
+        "theme": "EDUCATION",
+        "lastUpdate": "02/09/2026",
+        "description": "February 2026 Data Release"
+      },
+      {
+        "theme": "SCIENCE_TECHNOLOGY_INNOVATION",
+        "lastUpdate": "02/09/2026",
+        "description": "February 2026 Data Release"
+      },
+      {
+        "theme": "CULTURE",
+        "lastUpdate": "02/09/2026",
+        "description": "February 2026 Data Release"
+      },
+      {
+        "theme": "DEMOGRAPHIC_SOCIOECONOMIC",
+        "lastUpdate": "02/09/2026",
+        "description": "February 2026 Data Release"
+      }
+    ]
+  },
+  {
+    "version": "20260311-78618c3e",
+    "publicationDate": "2026-03-11T19:40:01.748Z",
+    "description": "Updated release files with fix for some indicators",
+    "themeDataStatus": [
+      {
+        "theme": "EDUCATION",
+        "lastUpdate": "02/09/2026",
+        "description": "February 2026 Data Release"
+      },
+      {
+        "theme": "SCIENCE_TECHNOLOGY_INNOVATION",
+        "lastUpdate": "02/09/2026",
+        "description": "February 2026 Data Release"
+      },
+      {
+        "theme": "CULTURE",
+        "lastUpdate": "02/09/2026",
+        "description": "February 2026 Data Release"
+      },
+      {
+        "theme": "DEMOGRAPHIC_SOCIOECONOMIC",
+        "lastUpdate": "02/09/2026",
+        "description": "February 2026 Data Release"
+      }
+    ]
+  },
+  {
+    "version": "20260224-aef8b145",
+    "publicationDate": "2026-02-26T17:19:14.438Z",
+    "description": "string",
+    "themeDataStatus": [
+      {
+        "theme": "EDUCATION",
+        "lastUpdate": "02/09/2026",
+        "description": "February 2026 Data Release"
+      },
+      {
+        "theme": "SCIENCE_TECHNOLOGY_INNOVATION",
+        "lastUpdate": "02/09/2026",
+        "description": "February 2026 Data Release"
+      },
+      {
+        "theme": "CULTURE",
+        "lastUpdate": "02/09/2026",
+        "description": "February 2026 Data Release"
+      },
+      {
+        "theme": "DEMOGRAPHIC_SOCIOECONOMIC",
+        "lastUpdate": "02/09/2026",
+        "description": "February 2026 Data Release"
+      }
+    ]
+  },
+  {
+    "version": "20251112-3e719d9a",
+    "publicationDate": "2025-11-13T17:46:49.151Z",
+    "description": "November 2025 SCCI Refresh",
+    "themeDataStatus": [
+      {
+        "theme": "EDUCATION",
+        "lastUpdate": "9/17/2025",
+        "description": "September 2025 Data Release"
+      },
+      {
+        "theme": "SCIENCE_TECHNOLOGY_INNOVATION",
+        "lastUpdate": "11/01/2025",
+        "description": "November 2025 Data Release"
+      },
+      {
+        "theme": "CULTURE",
+        "lastUpdate": "11/01/2025",
+        "description": "November 2025 Data Release"
+      },
+      {
+        "theme": "DEMOGRAPHIC_SOCIOECONOMIC",
+        "lastUpdate": "9/9/2025",
+        "description": "September 2025 Data Release"
+      }
+    ]
+  },
+  {
+    "version": "20250917-73f4b95c",
+    "publicationDate": "2025-09-18T13:31:02.790Z",
+    "description": "September 2025 Data Release",
+    "themeDataStatus": [
+      {
+        "theme": "EDUCATION",
+        "lastUpdate": "9/17/2025",
+        "description": "September 2025 Data Release"
+      },
+      {
+        "theme": "SCIENCE_TECHNOLOGY_INNOVATION",
+        "lastUpdate": "2/23/2025",
+        "description": "February 2025 Data Release"
+      },
+      {
+        "theme": "CULTURE",
+        "lastUpdate": "2/23/2025",
+        "description": "February 2025 Data Release"
+      },
+      {
+        "theme": "DEMOGRAPHIC_SOCIOECONOMIC",
+        "lastUpdate": "9/9/2025",
+        "description": "September 2025 Data Release"
+      }
+    ]
+  },
+  {
+    "version": "20250910-c4a5b1fe",
+    "publicationDate": "2025-09-12T02:55:22.686Z",
+    "description": "September 2025 release",
+    "themeDataStatus": [
+      {
+        "theme": "EDUCATION",
+        "lastUpdate": "9/9/2025",
+        "description": "September 2025 Data Release"
+      },
+      {
+        "theme": "SCIENCE_TECHNOLOGY_INNOVATION",
+        "lastUpdate": "2/23/2025",
+        "description": "February 2025 Data Release"
+      },
+      {
+        "theme": "CULTURE",
+        "lastUpdate": "2/23/2025",
+        "description": "February 2025 Data Release"
+      },
+      {
+        "theme": "DEMOGRAPHIC_SOCIOECONOMIC",
+        "lastUpdate": "9/9/2025",
+        "description": "September 2025 Data Release"
+      }
+    ]
+  },
+  {
+    "version": "20250416-f6707727",
+    "publicationDate": "2025-04-16T14:45:45.869Z",
+    "description": "Dropping data for Hong Kong coming from the dynamic templates",
+    "themeDataStatus": [
+      {
+        "theme": "EDUCATION",
+        "lastUpdate": "2025-02-23",
+        "description": "February 2025 Data Release"
+      },
+      {
+        "theme": "SCIENCE_TECHNOLOGY_INNOVATION",
+        "lastUpdate": "2025-02-23",
+        "description": "February 2025 Data Release"
+      },
+      {
+        "theme": "CULTURE",
+        "lastUpdate": "2025-02-23",
+        "description": "February 2025 Data Release"
+      },
+      {
+        "theme": "DEMOGRAPHIC_SOCIOECONOMIC",
+        "lastUpdate": "2025-02-23",
+        "description": "February 2025 Data Release"
+      }
+    ]
+  },
+  {
+    "version": "20250325-6f032139",
+    "publicationDate": "2025-03-25T23:19:35.051Z",
+    "description": "Dropping indicators with value=0 and magnitude=NA coming from HHS",
+    "themeDataStatus": [
+      {
+        "theme": "EDUCATION",
+        "lastUpdate": "2025-02-23",
+        "description": "February 2025 Data Release"
+      },
+      {
+        "theme": "SCIENCE_TECHNOLOGY_INNOVATION",
+        "lastUpdate": "2025-02-23",
+        "description": "February 2025 Data Release"
+      },
+      {
+        "theme": "CULTURE",
+        "lastUpdate": "2025-02-23",
+        "description": "February 2025 Data Release"
+      },
+      {
+        "theme": "DEMOGRAPHIC_SOCIOECONOMIC",
+        "lastUpdate": "2025-02-23",
+        "description": "February 2025 Data Release"
+      }
+    ]
+  },
+  {
+    "version": "20250312-e714f4e9",
+    "publicationDate": "2025-03-12T14:01:51.015Z",
+    "description": "Dropping Moldova 2024 population based-indicators",
+    "themeDataStatus": [
+      {
+        "theme": "EDUCATION",
+        "lastUpdate": "2025-02-23",
+        "description": "February 2025 Data Release"
+      },
+      {
+        "theme": "SCIENCE_TECHNOLOGY_INNOVATION",
+        "lastUpdate": "2025-02-23",
+        "description": "February 2025 Data Release"
+      },
+      {
+        "theme": "CULTURE",
+        "lastUpdate": "2025-02-23",
+        "description": "February 2025 Data Release"
+      },
+      {
+        "theme": "DEMOGRAPHIC_SOCIOECONOMIC",
+        "lastUpdate": "2025-02-23",
+        "description": "February 2025 Data Release"
+      }
+    ]
+  },
+  {
+    "version": "20250225-2ae60fad",
+    "publicationDate": "2025-02-27T15:29:19.309Z",
+    "description": "February 2025 DR",
+    "themeDataStatus": [
+      {
+        "theme": "EDUCATION",
+        "lastUpdate": "2025-02-23",
+        "description": "February 2025 Data Release"
+      },
+      {
+        "theme": "SCIENCE_TECHNOLOGY_INNOVATION",
+        "lastUpdate": "2025-02-23",
+        "description": "February 2025 Data Release"
+      },
+      {
+        "theme": "CULTURE",
+        "lastUpdate": "2025-02-23",
+        "description": "February 2025 Data Release"
+      },
+      {
+        "theme": "DEMOGRAPHIC_SOCIOECONOMIC",
+        "lastUpdate": "2025-02-23",
+        "description": "February 2025 Data Release"
+      }
+    ]
+  },
+  {
+    "version": "20241121-61101499",
+    "publicationDate": "2024-11-21T23:37:39.608Z",
+    "description": "SCCI Data refresh – Nov 2024 - DATA_FRESHNESS.CSV update",
+    "themeDataStatus": [
+      {
+        "theme": "EDUCATION",
+        "lastUpdate": "2024-10-29",
+        "description": "September 2024 Data Release"
+      },
+      {
+        "theme": "SCIENCE_TECHNOLOGY_INNOVATION",
+        "lastUpdate": "2024-11-21",
+        "description": "November 2024 Data Release"
+      },
+      {
+        "theme": "CULTURE",
+        "lastUpdate": "2024-11-21",
+        "description": "November 2024 Data Release"
+      },
+      {
+        "theme": "DEMOGRAPHIC_SOCIOECONOMIC",
+        "lastUpdate": "2024-10-29",
+        "description": "September 2024 Data Release"
+      }
+    ]
+  },
+  {
+    "version": "20241113-98786d81",
+    "publicationDate": "2024-11-21T18:57:35.136Z",
+    "description": "SCCI data refresh",
+    "themeDataStatus": [
+      {
+        "theme": "EDUCATION",
+        "lastUpdate": "2024-10-29",
+        "description": "September 2024 Data Release"
+      },
+      {
+        "theme": "SCIENCE_TECHNOLOGY_INNOVATION",
+        "lastUpdate": "2024-11-21",
+        "description": "November 2024 Data Release"
+      },
+      {
+        "theme": "CULTURE",
+        "lastUpdate": "2023-11-25",
+        "description": "November 2023 Data Release"
+      },
+      {
+        "theme": "DEMOGRAPHIC_SOCIOECONOMIC",
+        "lastUpdate": "2024-10-29",
+        "description": "September 2024 Data Release"
+      }
+    ]
+  },
+  {
+    "version": "20241030-9d4d089e",
+    "publicationDate": "2024-10-30T17:28:00.868Z",
+    "description": "Drop data for CIV on MYS for 1988 and 1998 and update some other education datapoints",
+    "themeDataStatus": [
+      {
+        "theme": "EDUCATION",
+        "lastUpdate": "2024-10-29",
+        "description": "September 2024 Data Release"
+      },
+      {
+        "theme": "SCIENCE_TECHNOLOGY_INNOVATION",
+        "lastUpdate": "2024-02-24",
+        "description": "February 2024 Data Release"
+      },
+      {
+        "theme": "CULTURE",
+        "lastUpdate": "2023-11-25",
+        "description": "November 2023 Data Release"
+      },
+      {
+        "theme": "DEMOGRAPHIC_SOCIOECONOMIC",
+        "lastUpdate": "2024-10-29",
+        "description": "September 2024 Data Release"
+      }
+    ]
+  },
+  {
+    "version": "20240913-b8ca1963",
+    "publicationDate": "2024-09-15T14:44:07.750Z",
+    "description": "Glossary Update",
+    "themeDataStatus": [
+      {
+        "theme": "EDUCATION",
+        "lastUpdate": "2024-09-05",
+        "description": "September 2024 Data Release"
+      },
+      {
+        "theme": "SCIENCE_TECHNOLOGY_INNOVATION",
+        "lastUpdate": "2024-02-28",
+        "description": "February 2024 Data Release"
+      },
+      {
+        "theme": "CULTURE",
+        "lastUpdate": "2023-11-25",
+        "description": "November 2023 Data Release"
+      },
+      {
+        "theme": "DEMOGRAPHIC_SOCIOECONOMIC",
+        "lastUpdate": "2024-09-05",
+        "description": "September 2024 Data Release"
+      }
+    ]
+  },
+  {
+    "version": "20240910-b5ad4d82",
+    "publicationDate": "2024-09-11T06:15:13.018Z",
+    "description": "September 2024 Data Release (first data publication via API)",
+    "themeDataStatus": [
+      {
+        "theme": "EDUCATION",
+        "lastUpdate": "2024-09-05",
+        "description": "September 2024 Data Release"
+      },
+      {
+        "theme": "SCIENCE_TECHNOLOGY_INNOVATION",
+        "lastUpdate": "2024-02-28",
+        "description": "February 2024 Data Release"
+      },
+      {
+        "theme": "CULTURE",
+        "lastUpdate": "2023-11-25",
+        "description": "November 2023 Data Release"
+      },
+      {
+        "theme": "DEMOGRAPHIC_SOCIOECONOMIC",
+        "lastUpdate": "2024-09-05",
+        "description": "September 2024 Data Release"
+      }
+    ]
+  }
+]

@@ -8,7 +8,7 @@
 [![MCP](https://img.shields.io/badge/MCP-Model%20Context%20Protocol-purple)](https://modelcontextprotocol.io/)
 [![Data: UNESCO UIS](https://img.shields.io/badge/Data-UNESCO%20UIS-blue)](https://uis.unesco.org/)
 [![Data: OECD](https://img.shields.io/badge/Data-OECD%20EaG-green)](https://www.oecd.org/education/education-at-a-glance/)
-[![Tests](https://img.shields.io/badge/tests-113-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-169-brightgreen)](tests/)
 [![No API Key](https://img.shields.io/badge/API%20Key-not%20required-success)](https://uis.unesco.org/bdds)
 ![CI](https://github.com/malkreide/global-education-mcp/actions/workflows/ci.yml/badge.svg)
 
@@ -276,8 +276,13 @@ global-education-mcp/
 │   ├── __init__.py                 # Package metadata, version
 │   ├── server.py                   # FastMCP server, 10 tools, 2 resources, 2 prompts
 │   └── api_client.py               # HTTP client, UNESCO UIS + OECD wrappers, formatters
+├── scripts/
+│   └── record_fixtures.py          # Records the fixtures from the live UIS API
 ├── tests/
-│   ├── test_server.py              # 39 tests (basic / intermediate / advanced)
+│   ├── fixtures/                   # Recorded responses + PROVENANCE.md (source, date, SHA-256)
+│   ├── fixture_data.py             # Fixture loader – raises on a missing name
+│   ├── test_source_contract.py     # Contract vs. the recording + live tests
+│   ├── test_server.py              # 42 tests (basic / intermediate / advanced)
 │   └── test_extended_scenarios.py  # 74 tests across 8 categories
 ├── claude_desktop_config.json      # Ready-to-use Claude Desktop config
 ├── pyproject.toml                  # Build configuration (hatchling)
@@ -301,6 +306,9 @@ global-education-mcp/
 - **Historical depth:** UNESCO UIS data availability varies by indicator; not all series go back to 1970
 - **Language:** UNESCO UIS returns indicator labels in English only; OECD labels may vary by dataflow
 - **No real-time data:** Both sources publish annually – figures reflect the latest published edition, not live school statistics
+- **Estimated values are labelled:** UIS marks part of its observations `UIS_EST` (UIS estimate) or `NAT_EST` (national estimate) – for `LR.AG15T99` that is 1,306 of 9,818 values. The status column names it; an unlabelled value is a reported one.
+- **Data rows carry the ISO code, not the country name:** plain names come from `uis_list_countries`. The data tools print the code rather than inventing a name.
+- **An unknown country code is not an error status:** UIS answers HTTP 200 with an empty result set and states the reason in the payload's `hints` field. The tools print that hint – otherwise a typo would look exactly like a country without data.
 
 ---
 
@@ -372,11 +380,14 @@ server. See `CHANGELOG.md` for the upgrade trail.
 # Unit tests (no API key required, no network)
 PYTHONPATH=src pytest tests/ -v -m "not integration"
 
-# Full suite including live API smoke tests
+# Full suite including the live tests against api.uis.unesco.org
 PYTHONPATH=src pytest tests/ -v
+
+# Re-record the fixtures (writes tests/fixtures/ + PROVENANCE.md)
+PYTHONPATH=src python scripts/record_fixtures.py
 ```
 
-**113 tests** across two files and three complexity levels:
+**169 tests** – 152 offline, 17 against the live source.
 
 | Category | Tests | Description |
 |---|---|---|
@@ -387,7 +398,31 @@ PYTHONPATH=src pytest tests/ -v
 | Subject-matter correctness | 10 | SDG-4 coverage, correct indicators per focus theme |
 | Performance & concurrency | 4 | Concurrent requests, time limits |
 | Schulamt scenarios | 7 | DACH comparison, PISA, teacher shortage |
-| Live API smoke tests | 4 | Real endpoints (via `--integration` flag) |
+| Source contract vs. the recording | 23 | Field names, envelope, query parameters, hints |
+| Live tests (`-m integration`) | 17 | The paths, the shape, and the tools themselves |
+
+### Why the fixtures are recorded rather than written
+
+A hand-written mock encodes its author's assumption and therefore cannot
+refute it: production code and fixture come from the same head, the same hour,
+the same reading of the docs. Where both are wrong, both are wrong together —
+and the suite stays green.
+
+That is not a hypothetical here. Before 2026-08-08 this repo had **128 green
+tests** while three of its four UNESCO paths answered HTTP 404 and every data
+query returned an empty list. The mocks carried the same invented field names
+as the production code (`observations`, `indicatorId`, `entityType`), so
+nothing could ever contradict them.
+
+Every fixture under `tests/fixtures/` is now a recorded response.
+`PROVENANCE.md` names the source URL, the recording date, the selection rule
+and the SHA-256 for each one. Without a date, "recorded" becomes
+indistinguishable from "invented" after two years — the file looks the same.
+
+Three of the fixtures are **controls**: a made-up `theme` value, a made-up
+country code, and the same time series requested twice with different
+parameter names. Without them a measurement only shows what *we* received; with
+them it shows what the source actually distinguishes.
 
 ---
 
