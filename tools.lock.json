@@ -344,7 +344,7 @@
     }
   },
   "uis_get_education_data": {
-    "hash": "90c1cd0742cb65d6556ac7f037e84cb2075bd6f0fc29992f6fa08eabc027be9e",
+    "hash": "a265bd1b755b04b6b60cdec43321406a38a168c8d4684e5b1de8c99015bd1caf",
     "signature": {
       "annotations": {
         "destructiveHint": false,
@@ -353,7 +353,7 @@
         "readOnlyHint": true,
         "title": "UIS-Bildungsdaten abrufen"
       },
-      "description": "Ruft Bildungsdaten von der UNESCO Institute for Statistics API ab.\n\nKernfunktion des Servers. Liefert international vergleichbare Daten\nzu einem spezifischen Indikator – für ein Land oder alle Länder.\n\nTypische Anwendungsfälle:\n  - Alphabetisierungsrate der Schweiz: indicator='LR.AG15T99', country='CHE'\n  - Bildungsausgaben OECD-Länder: indicator='XGDP.FSGOV', kein Land\n  - Schulabschlussquoten Europa: indicator='CR.1' + Jahresfilter\n  - Schüler-Lehrer-Verhältnis: indicator='PTR.1'\n\nArgs:\n    params: indicator_id (erforderlich), country_code, start_year, end_year\n\nReturns:\n    Markdown-formatierte Tabelle oder Zeitreihe mit Daten und Metadaten",
+      "description": "Ruft Bildungsdaten von der UNESCO Institute for Statistics API ab.\n\nKernfunktion des Servers. Liefert international vergleichbare Daten\nzu einem spezifischen Indikator – für ein Land oder alle Länder.\n\nTypische Anwendungsfälle:\n  - Alphabetisierungsrate der Schweiz: indicator='LR.AG15T99', country='CHE'\n  - Bildungsausgaben OECD-Länder: indicator='XGDP.FSGOV', kein Land\n  - Schulabschlussquoten Europa: indicator='CR.1' + Jahresfilter\n  - Bildungsausgaben-Zeitreihe: indicator='XGDP.FSGOV', country='CHE'\n\nEin unbekannter Ländercode ist hier keine Fehlermeldung: Die Quelle\nantwortet mit HTTP 200 und leerer Trefferliste, nennt den Grund aber in\n`hints`. Dieser Hinweis wird mit ausgegeben — sonst sähe ein Tippfehler\ngenauso aus wie ein Land ohne Daten.\n\nArgs:\n    params: indicator_id (erforderlich), country_code, start_year, end_year\n\nReturns:\n    Markdown-formatierte Tabelle oder Zeitreihe mit Daten und Metadaten",
       "inputSchema": {
         "$defs": {
           "UISDataInput": {
@@ -435,7 +435,7 @@
     }
   },
   "uis_list_countries": {
-    "hash": "3877f3736a790ee582c2388ae4baa8124229fe49a14a30e038d70a87281c01bb",
+    "hash": "f2b0d92326e72e772792cd3671ea2b3188a99e82046390a0b51ac215ea7473c3",
     "signature": {
       "annotations": {
         "destructiveHint": false,
@@ -444,7 +444,7 @@
         "readOnlyHint": true,
         "title": "UIS-Länder und Regionen auflisten"
       },
-      "description": "Listet verfügbare Länder und Regionen in der UNESCO UIS-Datenbank auf.\n\nGibt ISO 3166-1 Alpha-3 Codes zurück, die für Datenabfragen benötigt werden.\nBeispiele: CHE (Schweiz), DEU (Deutschland), AUT (Österreich), FRA (Frankreich).\n\nNeben Einzelländern sind auch regionale Aggregate verfügbar:\nWeltregionen, Einkommensgruppen (World Bank), SDG-Regionen.\n\nArgs:\n    params: search (optional Textfilter), entity_type (optional)\n\nReturns:\n    Markdown-Liste mit ISO-Codes und Ländernamen",
+      "description": "Listet verfügbare Länder und Regionen in der UNESCO UIS-Datenbank auf.\n\nGibt ISO 3166-1 Alpha-3 Codes zurück, die für Datenabfragen benötigt werden.\nBeispiele: CHE (Schweiz), DEU (Deutschland), AUT (Österreich), FRA (Frankreich).\n\nNeben Einzelländern (`NATIONAL`) sind regionale Aggregate (`REGIONAL`)\nverfügbar: Weltregionen, Einkommensgruppen, SDG-Regionen.\n\nArgs:\n    params: search (optional Textfilter), entity_type (optional)\n\nReturns:\n    Markdown-Liste mit ISO-Codes und Ländernamen",
       "inputSchema": {
         "$defs": {
           "UISGeoUnitsInput": {
@@ -462,7 +462,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Typ der Einheit: 'COUNTRY', 'REGION', 'SDG_REGION' etc.",
+                "description": "Typ der Einheit: 'NATIONAL' (241 Länder) oder 'REGIONAL' (221 Aggregate). Das sind die beiden Werte, die die Quelle am 2026-08-08 führte; 'COUNTRY'/'REGION'/'SDG_REGION' standen hier, gibt es dort aber nicht.",
                 "title": "Entity Type"
               },
               "search": {
@@ -499,7 +499,7 @@
     }
   },
   "uis_list_indicators": {
-    "hash": "17e980630b289036cebad21bfbec5cad90a5f97228f6693c6adc4892394179b7",
+    "hash": "ddef6ec497d372c77feb8d9bfb84ac2c9fc3929a6275d27e4b4b2f23591c6898",
     "signature": {
       "annotations": {
         "destructiveHint": false,
@@ -508,7 +508,7 @@
         "readOnlyHint": true,
         "title": "UIS-Indikatoren auflisten"
       },
-      "description": "Listet verfügbare Indikatoren der UNESCO Institute for Statistics auf.\n\nDie UIS bietet über 4'000 Indikatoren zu Bildung, Wissenschaft, Kultur\nund Kommunikation. Diese Funktion dient zur Exploration und Indikatorsuche.\n\nWichtige Indikator-Kategorien:\n  - Alphabetisierung (LR.*): Lese-/Schreibkompetenz nach Alter, Geschlecht\n  - Einschulungsraten (NERA.*): Netto-Einschulungsraten nach Schulstufe\n  - Schulabschlüsse (CR.*): Abschlussquoten Primar- bis Sekundarstufe\n  - Bildungsausgaben (XGDP.*, XUNIT.*): % BIP, pro Schüler\n  - Lehrerquoten (PTR.*, TRTP.*): Schüler-Lehrer-Verhältnis, Ausbildungsgrad\n\nArgs:\n    params: theme (optional), search (optional), limit\n\nReturns:\n    Markdown-Liste mit Indikator-IDs und Beschreibungen",
+      "description": "Listet verfügbare Indikatoren der UNESCO Institute for Statistics auf.\n\nDie UIS bietet über 4'000 Indikatoren zu Bildung, Wissenschaft, Kultur\nund Kommunikation. Diese Funktion dient zur Exploration und Indikatorsuche.\n\nWichtige Indikator-Kategorien (am 2026-08-08 gegen die Quelle gehalten;\n`NERA.*`, `XUNIT.*` und `PTR.*` standen hier, existieren dort aber nicht):\n  - Alphabetisierung (LR.*): Lese-/Schreibkompetenz nach Alter, Geschlecht\n  - Einschulungsraten (NERT.*, OFST.*): Netto-Einschulung, Kinder ausserhalb der Schule\n  - Schulabschlüsse (CR.*): Abschlussquoten Primar- bis Sekundarstufe\n  - Bildungsausgaben (XGDP.*): % BIP\n  - Lehrpersonen (TRTP.*, FTP.*): Mindestqualifikation, Frauenanteil\n\nArgs:\n    params: theme (optional), search (optional), limit\n\nReturns:\n    Markdown-Liste mit Indikator-IDs und Beschreibungen",
       "inputSchema": {
         "$defs": {
           "UISIndicatorsInput": {

@@ -44,6 +44,8 @@ from .api_client import (
     uis_get_geo_units,
     uis_get_indicators,
     uis_get_versions,
+    uis_hints,
+    uis_records,
 )
 from .logging_setup import configure_logging
 
@@ -199,12 +201,13 @@ async def uis_list_indicators(params: UISIndicatorsInput) -> str:
     Die UIS bietet über 4'000 Indikatoren zu Bildung, Wissenschaft, Kultur
     und Kommunikation. Diese Funktion dient zur Exploration und Indikatorsuche.
 
-    Wichtige Indikator-Kategorien:
+    Wichtige Indikator-Kategorien (am 2026-08-08 gegen die Quelle gehalten;
+    `NERA.*`, `XUNIT.*` und `PTR.*` standen hier, existieren dort aber nicht):
       - Alphabetisierung (LR.*): Lese-/Schreibkompetenz nach Alter, Geschlecht
-      - Einschulungsraten (NERA.*): Netto-Einschulungsraten nach Schulstufe
+      - Einschulungsraten (NERT.*, OFST.*): Netto-Einschulung, Kinder ausserhalb der Schule
       - Schulabschlüsse (CR.*): Abschlussquoten Primar- bis Sekundarstufe
-      - Bildungsausgaben (XGDP.*, XUNIT.*): % BIP, pro Schüler
-      - Lehrerquoten (PTR.*, TRTP.*): Schüler-Lehrer-Verhältnis, Ausbildungsgrad
+      - Bildungsausgaben (XGDP.*): % BIP
+      - Lehrpersonen (TRTP.*, FTP.*): Mindestqualifikation, Frauenanteil
 
     Args:
         params: theme (optional), search (optional), limit
@@ -220,20 +223,29 @@ async def uis_list_indicators(params: UISIndicatorsInput) -> str:
             search_lower = params.search.lower()
             indicators = [i for i in indicators if search_lower in json.dumps(i).lower()]
 
-        # Limit anwenden
+        # Limit anwenden. Die Zahl davor ist der Befund, die danach die Anzeige
+        # — sie zu verwechseln lässt «40 Treffer» aussehen wie «40 Indikatoren
+        # in dieser Datenbank».
+        matched = len(indicators)
         indicators = indicators[: params.limit]
 
         if not indicators:
             return f"_Keine Indikatoren gefunden für Thema='{params.theme}', Suche='{params.search}'._"
 
+        shown = f"{len(indicators)} von {matched} Treffern" if matched > len(indicators) else f"{matched} Treffer"
         lines = [
             "## UNESCO UIS – Verfügbare Indikatoren",
-            f"_{len(indicators)} Einträge (von insgesamt 4'000+)_",
+            f"_{shown}._ Filter: Thema={params.theme or 'alle'}, Suche={params.search or 'keine'}.",
             "",
         ]
         for ind in indicators:
-            ind_id = ind.get("indicatorId", ind.get("id", "?"))
-            ind_name = ind.get("indicatorName", ind.get("name", "–"))
+            # Die Quelle schreibt `indicatorCode`. Gesucht wurde `indicatorId`
+            # mit `id` als zweitem Versuch — beide gibt es nicht, und der
+            # dritte Versuch war das Literal "?". In genau dem Werkzeug, dessen
+            # einzige Aufgabe es ist, die ID für den nächsten Aufruf zu finden,
+            # stand damit in jeder der 5063 Zeilen ein Fragezeichen.
+            ind_id = ind.get("indicatorCode", ind.get("indicatorId", ind.get("id", "?")))
+            ind_name = ind.get("name", ind.get("indicatorName", "–"))
             theme_tag = ind.get("theme", "")
             lines.append(f"- **`{ind_id}`** – {ind_name} _{theme_tag}_")
 
@@ -278,7 +290,10 @@ class UISGeoUnitsInput(BaseModel):
     )
     entity_type: Optional[str] = Field(
         default=None,
-        description="Typ der Einheit: 'COUNTRY', 'REGION', 'SDG_REGION' etc.",
+        description="Typ der Einheit: 'NATIONAL' (241 Länder) oder 'REGIONAL' "
+        "(221 Aggregate). Das sind die beiden Werte, die die Quelle am "
+        "2026-08-08 führte; 'COUNTRY'/'REGION'/'SDG_REGION' standen hier, "
+        "gibt es dort aber nicht.",
         max_length=50,
     )
 
@@ -300,8 +315,8 @@ async def uis_list_countries(params: UISGeoUnitsInput) -> str:
     Gibt ISO 3166-1 Alpha-3 Codes zurück, die für Datenabfragen benötigt werden.
     Beispiele: CHE (Schweiz), DEU (Deutschland), AUT (Österreich), FRA (Frankreich).
 
-    Neben Einzelländern sind auch regionale Aggregate verfügbar:
-    Weltregionen, Einkommensgruppen (World Bank), SDG-Regionen.
+    Neben Einzelländern (`NATIONAL`) sind regionale Aggregate (`REGIONAL`)
+    verfügbar: Weltregionen, Einkommensgruppen, SDG-Regionen.
 
     Args:
         params: search (optional Textfilter), entity_type (optional)
@@ -311,26 +326,40 @@ async def uis_list_countries(params: UISGeoUnitsInput) -> str:
     """
     try:
         geo_units = await uis_get_geo_units()
+        total = len(geo_units)
 
         # Filter anwenden
         if params.search:
             search_lower = params.search.lower()
             geo_units = [g for g in geo_units if search_lower in json.dumps(g).lower()]
         if params.entity_type:
-            geo_units = [g for g in geo_units if g.get("entityType", "").upper() == params.entity_type.upper()]
+            # Die Quelle schreibt `type`, nicht `entityType`. Der Vergleich
+            # stellte damit ausnahmslos `"" == "NATIONAL"` an: Wer nach einem
+            # Typ filterte, bekam «Keine geografischen Einheiten gefunden» —
+            # aus 462 vorhandenen Einträgen.
+            wanted = params.entity_type.upper()
+            geo_units = [g for g in geo_units if str(g.get("type", g.get("entityType", ""))).upper() == wanted]
 
         if not geo_units:
-            return "_Keine geografischen Einheiten gefunden._"
+            return (
+                f"_Keine der {total} geografischen Einheiten passt zu "
+                f"Suche={params.search or 'keine'}, Typ={params.entity_type or 'alle'}. "
+                "Die Quelle führt die Typen `NATIONAL` und `REGIONAL`._"
+            )
 
+        matched = len(geo_units)
+        shown = geo_units[:200]  # Max. 200 für Übersichtlichkeit
+        head = f"{len(shown)} von {matched} Treffern" if matched > len(shown) else f"{matched} Treffer"
         lines = [
             "## UNESCO UIS – Länder und Regionen",
-            f"_{len(geo_units)} Einträge_",
+            f"_{head} (von {total} Einträgen)._ Filter: Suche="
+            f"{params.search or 'keine'}, Typ={params.entity_type or 'alle'}.",
             "",
         ]
-        for g in geo_units[:200]:  # Max. 200 für Übersichtlichkeit
-            geo_id = g.get("geoUnitId", g.get("id", "?"))
-            geo_name = g.get("geoUnitName", g.get("name", "–"))
-            entity_type = g.get("entityType", "")
+        for g in shown:
+            geo_id = g.get("id", g.get("geoUnitId", "?"))
+            geo_name = g.get("name", g.get("geoUnitName", "–"))
+            entity_type = g.get("type", g.get("entityType", ""))
             lines.append(f"- **`{geo_id}`** – {geo_name} _{entity_type}_")
 
         lines.append("")
@@ -412,7 +441,12 @@ async def uis_get_education_data(params: UISDataInput) -> str:
       - Alphabetisierungsrate der Schweiz: indicator='LR.AG15T99', country='CHE'
       - Bildungsausgaben OECD-Länder: indicator='XGDP.FSGOV', kein Land
       - Schulabschlussquoten Europa: indicator='CR.1' + Jahresfilter
-      - Schüler-Lehrer-Verhältnis: indicator='PTR.1'
+      - Bildungsausgaben-Zeitreihe: indicator='XGDP.FSGOV', country='CHE'
+
+    Ein unbekannter Ländercode ist hier keine Fehlermeldung: Die Quelle
+    antwortet mit HTTP 200 und leerer Trefferliste, nennt den Grund aber in
+    `hints`. Dieser Hinweis wird mit ausgegeben — sonst sähe ein Tippfehler
+    genauso aus wie ein Land ohne Daten.
 
     Args:
         params: indicator_id (erforderlich), country_code, start_year, end_year
@@ -432,11 +466,12 @@ async def uis_get_education_data(params: UISDataInput) -> str:
 
         if params.country_code:
             # Zeitreihe für ein Land
-            observations = raw_data.get("observations", raw_data.get("data", []))
+            observations = uis_records(raw_data)
             return format_country_timeseries(
                 observations=observations,
                 country_name=params.country_code,
                 indicator_id=f"{params.indicator_id} {indicator_name}",
+                hints=uis_hints(raw_data),
             )
         else:
             # Länderübersicht
@@ -535,7 +570,7 @@ async def uis_compare_countries(params: UISCompareInput, ctx: Optional[Context] 
         if isinstance(raw, Exception):
             errors.append(f"{code}: {handle_api_error(raw)}")
             continue
-        observations = raw.get("observations", raw.get("data", []))
+        observations = uis_records(raw)
         if observations:
             sorted_obs = sorted(observations, key=lambda x: x.get("year", 0), reverse=True)
             latest = sorted_obs[0]
@@ -548,7 +583,11 @@ async def uis_compare_countries(params: UISCompareInput, ctx: Optional[Context] 
                 }
             )
         else:
-            errors.append(f"{code}: keine Daten")
+            # Warum leer? Die Quelle sagt es, wenn der Code nicht existiert.
+            # «keine Daten» für ein erfundenes Land ist eine Aussage über die
+            # Welt, wo eine über die Anfrage stünde.
+            why = uis_hints(raw)
+            errors.append(f"{code}: {'; '.join(why) if why else 'keine Daten'}")
 
     if not results:
         return f"_Keine Daten für {params.indicator_id} gefunden. Fehler: {'; '.join(errors)}_"
@@ -664,7 +703,7 @@ async def uis_country_education_profile(params: UISCountryProfileInput, ctx: Opt
             errors.append(f"{ind_id}: {str(raw)[:80]}")
             lines.append(f"| {ind_label} | _nicht verfügbar_ | – |")
             continue
-        observations = raw.get("observations", raw.get("data", []))
+        observations = uis_records(raw)
         if observations:
             sorted_obs = sorted(observations, key=lambda x: x.get("year", 0), reverse=True)
             latest = sorted_obs[0]
@@ -673,15 +712,22 @@ async def uis_country_education_profile(params: UISCountryProfileInput, ctx: Opt
             lines.append(f"| {ind_label} | **{value}** | {year} |")
         else:
             lines.append(f"| {ind_label} | _keine Daten_ | – |")
+            errors += uis_hints(raw)
 
     lines.append("")
     lines.append("### Hinweis")
     lines.append(
         "Werte basieren auf den neuesten verfügbaren Meldungen. "
-        "Datenlücken entstehen durch fehlende nationale Berichterstattung."
+        "Datenlücken entstehen durch fehlende nationale Berichterstattung — "
+        "es sei denn, unten steht ein Hinweis der Quelle. Dann liegt es an "
+        "der Anfrage und nicht an der Berichterstattung."
     )
     if errors:
-        lines.append(f"\n_Fehler bei: {'; '.join(errors[:3])}_")
+        # Ein falscher Ländercode erzeugt denselben Hinweis für jeden der
+        # abgefragten Indikatoren. Achtmal dieselbe Zeile liest sich wie acht
+        # Befunde; entwertet wird dabei der eine, der zählt.
+        unique = list(dict.fromkeys(errors))
+        lines.append(f"\n_Fehler bei: {'; '.join(unique[:3])}_")
 
     return "\n".join(lines)
 
@@ -1111,7 +1157,7 @@ async def education_benchmark_countries(params: CrossSourceInput, ctx: Optional[
             if isinstance(raw, Exception):
                 results.append({"country": code, "value": None, "year": "–"})
                 continue
-            obs = raw.get("observations", raw.get("data", []))
+            obs = uis_records(raw)
             if obs:
                 latest = sorted(obs, key=lambda x: x.get("year", 0), reverse=True)[0]
                 results.append(

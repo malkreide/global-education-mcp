@@ -37,34 +37,58 @@ from global_education_mcp.server import (
 )
 
 # ─── Hilfsdaten für Tests ─────────────────────────────────────────────────────
+#
+# Diese Konstanten standen hier als frei erfundene Literale und trugen die
+# Feldnamen, die auch der Produktivcode annahm: `observations` als Umschlag,
+# `indicatorId` in der Definitionsliste, `entityType` bei den Ländern. Keinen
+# dieser Namen führt eine UIS-Antwort. Beide Seiten irrten gleich, und **128
+# Tests waren grün**, während drei von vier Pfaden HTTP 404 gaben und jede
+# Datenabfrage eine leere Liste zurückbrachte.
+#
+# Die Form kommt jetzt aus `tests/fixtures/`, aufgezeichnet am 2026-08-08.
+# `TestRecordedShapeContract` hält jeden hier verwendeten Namen dagegen — ein
+# Literal, das die Quelle nicht kennt, macht die Suite ab sofort rot.
+#
+# Beachtenswert: In den DATENzeilen heisst das Indikatorfeld `indicatorId`, in
+# der DEFINITIONSliste dagegen `indicatorCode`. Zwei Namen für dieselbe Sache
+# in derselben API — die Sorte Detail, die man sich nicht ausdenkt.
 
 MOCK_UIS_INDICATORS = [
-    {"indicatorId": "LR.AG15T99", "indicatorName": "Adult literacy rate", "theme": "EDUCATION"},
-    {"indicatorId": "CR.1", "indicatorName": "Completion rate primary", "theme": "EDUCATION"},
-    {"indicatorId": "XGDP.FSGOV", "indicatorName": "Government expenditure on education", "theme": "EDUCATION"},
+    {"indicatorCode": "LR.AG15T99", "name": "Adult literacy rate", "theme": "EDUCATION"},
+    {"indicatorCode": "CR.1", "name": "Completion rate primary", "theme": "EDUCATION"},
+    {"indicatorCode": "XGDP.FSGOV", "name": "Government expenditure on education", "theme": "EDUCATION"},
 ]
 
 MOCK_UIS_GEO_UNITS = [
-    {"geoUnitId": "CHE", "geoUnitName": "Switzerland", "entityType": "COUNTRY"},
-    {"geoUnitId": "DEU", "geoUnitName": "Germany", "entityType": "COUNTRY"},
-    {"geoUnitId": "FIN", "geoUnitName": "Finland", "entityType": "COUNTRY"},
-    {"geoUnitId": "WORLD", "geoUnitName": "World", "entityType": "REGION"},
+    {"id": "CHE", "name": "Switzerland", "type": "NATIONAL"},
+    {"id": "DEU", "name": "Germany", "type": "NATIONAL"},
+    {"id": "FIN", "name": "Finland", "type": "NATIONAL"},
+    {"id": "WORLD", "name": "World", "type": "REGIONAL"},
 ]
 
+
+def _obs(geo: str, year: int, value: float, qualifier: str | None = None) -> dict:
+    """Eine Datenzeile in der Form, die die Quelle liefert."""
+    return {
+        "indicatorId": "CR.1",
+        "geoUnit": geo,
+        "year": year,
+        "value": value,
+        "magnitude": None,
+        "qualifier": qualifier,
+    }
+
+
 MOCK_UIS_OBSERVATIONS = {
-    "observations": [
-        {"geoUnit": "CHE", "geoUnitName": "Switzerland", "year": 2020, "value": 99.0},
-        {"geoUnit": "CHE", "geoUnitName": "Switzerland", "year": 2021, "value": 99.1},
-        {"geoUnit": "CHE", "geoUnitName": "Switzerland", "year": 2022, "value": 99.2},
-    ]
+    "hints": [],
+    "records": [_obs("CHE", 2020, 99.0), _obs("CHE", 2021, 99.1), _obs("CHE", 2022, 99.2)],
+    "indicatorMetadata": [],
 }
 
 MOCK_UIS_MULTI_COUNTRY = {
-    "observations": [
-        {"geoUnit": "CHE", "geoUnitName": "Switzerland", "year": 2022, "value": 99.2},
-        {"geoUnit": "DEU", "geoUnitName": "Germany", "year": 2022, "value": 99.1},
-        {"geoUnit": "FIN", "geoUnitName": "Finland", "year": 2022, "value": 99.0},
-    ]
+    "hints": [],
+    "records": [_obs("CHE", 2022, 99.2), _obs("DEU", 2022, 99.1), _obs("FIN", 2022, 99.0)],
+    "indicatorMetadata": [],
 }
 
 MOCK_VERSIONS = [
@@ -115,7 +139,11 @@ class TestConstants:
         assert "LR.AG15T99" in UNESCO_EDUCATION_INDICATORS
         assert "CR.1" in UNESCO_EDUCATION_INDICATORS
         assert "XGDP.FSGOV" in UNESCO_EDUCATION_INDICATORS
-        assert "PTR.1" in UNESCO_EDUCATION_INDICATORS
+        # Hier stand `PTR.1` — das Schüler-Lehrer-Verhältnis. Diesen Indikator
+        # führt die UIS nicht, und dieser Test bestätigte trotzdem, dass er
+        # «vorhanden» sei: Er prüfte die Tabelle gegen sich selbst. Was die
+        # Tabelle gegen die Quelle hält, steht in `TestIndicatorTableContract`.
+        assert "TRTP.1" in UNESCO_EDUCATION_INDICATORS
 
     def test_oecd_key_dataflows_present(self):
         assert "EAG_FISC" in OECD_EDUCATION_DATAFLOWS
@@ -126,34 +154,69 @@ class TestFormatters:
     """Tests für Formatierungshilfsfunktionen."""
 
     def test_format_country_timeseries_basic(self):
+        # `observationStatus` stand hier und im Produktivcode; die Quelle
+        # schreibt `qualifier`. Die Statusspalte war deshalb in jeder Zeile
+        # leer — und dieser Test bemerkte es nicht, weil er sie nicht prüfte.
         observations = [
-            {"year": 2020, "value": 98.5, "observationStatus": "A"},
-            {"year": 2021, "value": 99.0, "observationStatus": "A"},
+            {"year": 2020, "value": 98.5, "qualifier": None},
+            {"year": 2021, "value": 99.0, "qualifier": "UIS_EST"},
         ]
         result = format_country_timeseries(observations, "Switzerland", "LR.AG15T99")
         assert "Switzerland" in result
         assert "2020" in result
         assert "98.5" in result
+        # Ein gemeldeter Wert und eine UIS-Schätzung dürfen nicht gleich
+        # aussehen: Der Unterschied ist der ganze Grund, warum die Quelle das
+        # Feld führt.
+        assert "gemeldet" in result
+        assert "UIS-Schätzung" in result
 
     def test_format_country_timeseries_empty(self):
         result = format_country_timeseries([], "Germany", "LR.AG15T99")
         assert "keine" in result.lower() or "no" in result.lower()
 
+    def test_format_country_timeseries_empty_names_the_reason(self):
+        """Eine leere Antwort mit Hinweis nennt den Hinweis.
+
+        Sonst sieht ein Tippfehler im Ländercode genauso aus wie ein Land ohne
+        Daten — und das ist der Fehler, um den es in diesem Server geht.
+        """
+        result = format_country_timeseries(
+            [], "XXX", "CR.1", hints=["The geoUnit could not be found, XXX (UIS::HINT::003)"]
+        )
+        assert "could not be found" in result
+
     def test_format_uis_data_markdown(self):
         data = {
-            "observations": [
-                {"geoUnit": "CHE", "geoUnitName": "Switzerland", "year": 2022, "value": 99.2},
-                {"geoUnit": "DEU", "geoUnitName": "Germany", "year": 2022, "value": 99.0},
+            "records": [
+                {"geoUnit": "CHE", "year": 2022, "value": 99.2},
+                {"geoUnit": "DEU", "year": 2022, "value": 99.0},
             ]
         }
         result = format_uis_data_as_markdown(data, "LR.AG15T99", "Adult literacy")
-        assert "Switzerland" in result
-        assert "Germany" in result
+        # Klarnamen erwartete dieser Test bislang — die Quelle liefert in einer
+        # Datenzeile aber nur den Code. Der Ausdruck fiel auf ihn zurück und
+        # schrieb «CHE (CHE)»; hier stand «Switzerland», weil die Fixture den
+        # Namen mitbrachte, den es nie gab.
+        assert "CHE" in result
+        assert "DEU" in result
         assert "99.2" in result
 
     def test_format_uis_data_empty(self):
-        result = format_uis_data_as_markdown({}, "LR.AG15T99")
+        result = format_uis_data_as_markdown({"records": []}, "LR.AG15T99")
         assert "keine" in result.lower() or "no" in result.lower()
+
+    def test_format_uis_data_missing_envelope_is_an_error(self):
+        """Ein fehlendes `records` ist keine leere Treffermenge.
+
+        Genau diese Gleichsetzung war der Befund: Der Leser suchte
+        `observations`, fand nichts und gab `[]` zurück — aus jeder Antwort
+        wurde «für dieses Land gibt es keine Daten».
+        """
+        from global_education_mcp.api_client import UpstreamShapeError
+
+        with pytest.raises(UpstreamShapeError):
+            format_uis_data_as_markdown({"observations": []}, "LR.AG15T99")
 
     def test_handle_api_error_timeout(self):
         import httpx
@@ -423,8 +486,8 @@ class TestComplexWorkflows:
         def mock_uis_data(indicator, geo_unit=None, **kwargs):
             values = {"CHE": 99.2, "DEU": 99.0, "AUT": 98.5, "FIN": 99.5}
             if geo_unit in values:
-                return {"observations": [{"year": 2022, "value": values[geo_unit], "geoUnitName": geo_unit}]}
-            return {"observations": []}
+                return {"records": [{"year": 2022, "value": values[geo_unit]}]}
+            return {"records": []}
 
         with patch("global_education_mcp.server.uis_get_data", new_callable=AsyncMock, side_effect=mock_uis_data):
             params = UISCompareInput(
@@ -450,7 +513,7 @@ class TestComplexWorkflows:
             call_count += 1
             if geo_unit == "INVALID":
                 raise Exception("Country not found")
-            return {"observations": [{"year": 2022, "value": 95.0, "geoUnitName": geo_unit}]}
+            return {"records": [{"year": 2022, "value": 95.0}]}
 
         with patch("global_education_mcp.server.uis_get_data", side_effect=mock_uis_data):
             params = UISCompareInput(
@@ -466,7 +529,7 @@ class TestComplexWorkflows:
         """Profil soll alle 10 Kernindikatoren abdecken."""
 
         async def mock_uis_data(indicator, geo_unit=None, **kwargs):
-            return {"observations": [{"year": 2022, "value": 95.0, "geoUnitName": "Switzerland"}]}
+            return {"records": [{"year": 2022, "value": 95.0}]}
 
         with patch("global_education_mcp.server.uis_get_data", side_effect=mock_uis_data):
             params = UISCountryProfileInput(country_code="CHE")
@@ -482,7 +545,7 @@ class TestComplexWorkflows:
         """Benchmark soll für alle 5 Fokustypen funktionieren."""
 
         async def mock_uis_data(indicator, geo_unit=None, **kwargs):
-            return {"observations": [{"year": 2022, "value": 90.0, "geoUnitName": geo_unit or "?"}]}
+            return {"records": [{"year": 2022, "value": 90.0}]}
 
         with patch("global_education_mcp.server.uis_get_data", side_effect=mock_uis_data):
             for focus in ["literacy", "spending", "completion", "teachers", "enrollment"]:
@@ -503,8 +566,8 @@ class TestComplexWorkflows:
         async def mock_uis_data(indicator, geo_unit=None, **kwargs):
             for code, value in countries_data:
                 if geo_unit == code:
-                    return {"observations": [{"year": 2022, "value": value, "geoUnitName": code}]}
-            return {"observations": []}
+                    return {"records": [{"year": 2022, "value": value}]}
+            return {"records": []}
 
         with patch("global_education_mcp.server.uis_get_data", side_effect=mock_uis_data):
             params = CrossSourceInput(country_codes=["CHE", "DEU", "FIN"], focus="literacy")
@@ -545,7 +608,7 @@ class TestComplexWorkflows:
         async def mock_compare_data(indicator, geo_unit=None, **kwargs):
             vals = {"CHE": 99.2, "DEU": 99.0, "FIN": 99.5}
             v = vals.get(geo_unit, 95.0)
-            return {"observations": [{"year": 2022, "value": v, "geoUnitName": geo_unit}]}
+            return {"records": [{"year": 2022, "value": v}]}
 
         with patch("global_education_mcp.server.uis_get_data", side_effect=mock_compare_data):
             compare_result = await uis_compare_countries(
@@ -721,7 +784,7 @@ class TestContextInjection:
     @pytest.mark.asyncio
     async def test_compare_countries_reports_per_country_progress(self):
         ctx = _MockContext()
-        fake = {"observations": [{"value": 99.0, "year": 2023, "geoUnitName": "X"}]}
+        fake = {"records": [{"value": 99.0, "year": 2023}]}
         with patch("global_education_mcp.server.uis_get_data", new_callable=AsyncMock, return_value=fake):
             from global_education_mcp.server import uis_compare_countries
 
@@ -739,7 +802,7 @@ class TestContextInjection:
     @pytest.mark.asyncio
     async def test_country_profile_reports_indicator_progress(self):
         ctx = _MockContext()
-        fake = {"observations": [{"value": 5.0, "year": 2022}]}
+        fake = {"records": [{"value": 5.0, "year": 2022}]}
         with patch("global_education_mcp.server.uis_get_data", new_callable=AsyncMock, return_value=fake):
             from global_education_mcp.server import uis_country_education_profile
 
@@ -754,7 +817,7 @@ class TestContextInjection:
     @pytest.mark.asyncio
     async def test_benchmark_reports_total_calls_progress(self):
         ctx = _MockContext()
-        fake = {"observations": [{"value": 90.0, "year": 2023}]}
+        fake = {"records": [{"value": 90.0, "year": 2023}]}
         with patch("global_education_mcp.server.uis_get_data", new_callable=AsyncMock, return_value=fake):
             from global_education_mcp.server import education_benchmark_countries
 
@@ -769,7 +832,7 @@ class TestContextInjection:
     @pytest.mark.asyncio
     async def test_tools_work_without_ctx(self):
         """Backward-compat: Tests, die ctx weglassen, muessen weiter funktionieren."""
-        fake = {"observations": [{"value": 99.0, "year": 2023}]}
+        fake = {"records": [{"value": 99.0, "year": 2023}]}
         with patch("global_education_mcp.server.uis_get_data", new_callable=AsyncMock, return_value=fake):
             from global_education_mcp.server import uis_compare_countries
 
@@ -793,7 +856,7 @@ class TestContextInjection:
             async def report_progress(self, *a, **kw):
                 raise RuntimeError("ctx is broken")
 
-        fake = {"observations": [{"value": 99.0, "year": 2023}]}
+        fake = {"records": [{"value": 99.0, "year": 2023}]}
         with patch("global_education_mcp.server.uis_get_data", new_callable=AsyncMock, return_value=fake):
             from global_education_mcp.server import uis_compare_countries
 

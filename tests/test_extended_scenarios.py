@@ -51,20 +51,17 @@ from global_education_mcp.server import (
 
 
 def MOCK_SINGLE_OBS(country, value, year=2022):
-    return {"observations": [{"geoUnit": country, "geoUnitName": country, "year": year, "value": value}]}
+    return {"records": [{"geoUnit": country, "year": year, "value": value}]}
 
 
-MOCK_EMPTY = {"observations": []}
+MOCK_EMPTY = {"records": []}
 
-MOCK_NULL_VALUE = {"observations": [{"geoUnit": "CHE", "geoUnitName": "Switzerland", "year": 2022, "value": None}]}
+MOCK_NULL_VALUE = {"records": [{"geoUnit": "CHE", "year": 2022, "value": None}]}
 
-MOCK_ZERO_VALUE = {"observations": [{"geoUnit": "SSD", "geoUnitName": "South Sudan", "year": 2022, "value": 0.0}]}
+MOCK_ZERO_VALUE = {"records": [{"geoUnit": "SSD", "year": 2022, "value": 0.0}]}
 
 MOCK_LARGE_TIMESERIES = {
-    "observations": [
-        {"geoUnit": "CHE", "geoUnitName": "Switzerland", "year": y, "value": 95.0 + (y - 1990) * 0.1}
-        for y in range(1990, 2024)
-    ]
+    "records": [{"geoUnit": "CHE", "year": y, "value": 95.0 + (y - 1990) * 0.1} for y in range(1990, 2024)]
 }
 
 
@@ -207,7 +204,7 @@ class TestEdgeCases:
     @pytest.mark.asyncio
     async def test_single_observation_year_shown(self):
         """Nur eine einzige Beobachtung: Jahr muss korrekt angezeigt werden."""
-        mock = {"observations": [{"geoUnit": "CHE", "geoUnitName": "Switzerland", "year": 2019, "value": 98.7}]}
+        mock = {"records": [{"geoUnit": "CHE", "year": 2019, "value": 98.7}]}
         with patch("global_education_mcp.server.uis_get_data", new_callable=AsyncMock, return_value=mock):
             params = UISDataInput(indicator_id="LR.AG15T99", country_code="CHE")
             result = await uis_get_education_data(params)
@@ -458,19 +455,24 @@ class TestOutputQuality:
         assert "95.0" in result
 
     def test_format_multi_country_sorted_alphabetically(self):
-        """Länderübersicht soll alphabetisch sortiert sein (by country label)."""
+        """Länderübersicht soll nach Ländercode sortiert sein.
+
+        Dieser Test suchte «Australia», «Mexico» und «Zimbabwe» — Klarnamen,
+        die nur deshalb im Ergebnis standen, weil die Fixture sie als
+        `geoUnitName` mitbrachte. Eine UIS-Datenzeile führt dieses Feld nicht.
+        Sortiert wird jetzt nach dem, was die Antwort tatsächlich enthält.
+        """
         data = {
-            "observations": [
-                {"geoUnit": "ZWE", "geoUnitName": "Zimbabwe", "year": 2022, "value": 80.0},
-                {"geoUnit": "AUS", "geoUnitName": "Australia", "year": 2022, "value": 95.0},
-                {"geoUnit": "MEX", "geoUnitName": "Mexico", "year": 2022, "value": 90.0},
+            "records": [
+                {"geoUnit": "ZWE", "year": 2022, "value": 80.0},
+                {"geoUnit": "AUS", "year": 2022, "value": 95.0},
+                {"geoUnit": "MEX", "year": 2022, "value": 90.0},
             ]
         }
         result = format_uis_data_as_markdown(data, "LR.AG15T99")
-        aus_pos = result.find("Australia")
-        mex_pos = result.find("Mexico")
-        zwe_pos = result.find("Zimbabwe")
-        assert aus_pos < mex_pos < zwe_pos, "Länder sollen alphabetisch sortiert sein"
+        positions = [result.find(code) for code in ("AUS", "MEX", "ZWE")]
+        assert all(p >= 0 for p in positions), f"Ländercode fehlt in der Ausgabe: {result}"
+        assert positions == sorted(positions), "Länder sollen alphabetisch sortiert sein"
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -603,12 +605,19 @@ class TestSubjectMatterCorrectness:
     # ─── Indikator-Vollständigkeit ────────────────────────────────────────────
 
     def test_sdg4_core_indicators_all_present(self):
-        """Die 4 SDG-4-Kerndimensionen müssen abgedeckt sein."""
-        # SDG-4: Abschluss, Alphabetisierung, Ausgaben, Gleichstellung
+        """Die 4 SDG-4-Kerndimensionen müssen abgedeckt sein.
+
+        Für Gleichstellung stand hier `GPI.NERA.1`. Diese ID führt die UIS
+        nicht — und der Test bestätigte sie trotzdem, weil er die Tabelle
+        gegen sich selbst prüfte statt gegen die Quelle. Die Dimension wird
+        über die `.F`/`.M`-Paare abgedeckt. Den Abgleich mit der Quelle macht
+        `TestIndicatorTableContract` in `tests/test_source_contract.py`.
+        """
         assert "CR.1" in UNESCO_EDUCATION_INDICATORS  # Abschluss Primar
         assert "LR.AG15T24" in UNESCO_EDUCATION_INDICATORS  # Alphabetisierung Jugendliche
         assert "XGDP.FSGOV" in UNESCO_EDUCATION_INDICATORS  # Ausgaben
-        assert "GPI.NERA.1" in UNESCO_EDUCATION_INDICATORS  # Gleichstellung
+        assert "CR.1.F" in UNESCO_EDUCATION_INDICATORS  # Gleichstellung
+        assert "CR.1.M" in UNESCO_EDUCATION_INDICATORS
 
     def test_gender_indicators_available_for_all_levels(self):
         """Geschlechterdifferenzierte Alphabetisierung muss verfügbar sein."""
@@ -616,10 +625,18 @@ class TestSubjectMatterCorrectness:
         assert "LR.AG15T24.M" in UNESCO_EDUCATION_INDICATORS
 
     def test_education_system_levels_complete(self):
-        """Alle Schulstufen 1-3 müssen abgebildet sein."""
+        """Alle Schulstufen 1-3 müssen abgebildet sein.
+
+        Die zweite Zusicherung lautete `NERA.{level}` oder `PTR.{level}` —
+        zwei Präfixe, die die UIS nicht führt. Vorhanden war keines von beiden,
+        grün war es trotzdem: Die lokale Tabelle enthielt beide erfundenen
+        Familien, und geprüft wurde nur sie.
+        """
         for level in ["1", "2", "3"]:
             assert f"CR.{level}" in UNESCO_EDUCATION_INDICATORS
-            assert f"NERA.{level}" in UNESCO_EDUCATION_INDICATORS or f"PTR.{level}" in UNESCO_EDUCATION_INDICATORS
+        # Einschulung führt die Quelle als `NERT.*`, Lehrpersonal als `TRTP.*`.
+        assert "NERT.1.CP" in UNESCO_EDUCATION_INDICATORS
+        assert "TRTP.1" in UNESCO_EDUCATION_INDICATORS
 
     def test_oecd_eag_all_main_chapters_covered(self):
         """Education at a Glance Hauptkapitel: Einschreibung, Ausgaben, Personal, Beschäftigung."""
@@ -708,10 +725,10 @@ class TestSubjectMatterCorrectness:
     async def test_country_profile_uses_latest_value_not_oldest(self):
         """Profil soll neuesten Wert, nicht ältesten anzeigen."""
         mock_multi_year = {
-            "observations": [
-                {"geoUnit": "CHE", "geoUnitName": "Switzerland", "year": 2010, "value": 85.0},
-                {"geoUnit": "CHE", "geoUnitName": "Switzerland", "year": 2022, "value": 99.2},
-                {"geoUnit": "CHE", "geoUnitName": "Switzerland", "year": 2015, "value": 92.0},
+            "records": [
+                {"geoUnit": "CHE", "year": 2010, "value": 85.0},
+                {"geoUnit": "CHE", "year": 2022, "value": 99.2},
+                {"geoUnit": "CHE", "year": 2015, "value": 92.0},
             ]
         }
         with patch("global_education_mcp.server.uis_get_data", new_callable=AsyncMock, return_value=mock_multi_year):
@@ -900,7 +917,7 @@ class TestRealisticSchulامtScenarios:
 
         async def mock_data(indicator, geo_unit=None, **kwargs):
             val = profile_data.get(indicator, 90.0)
-            return {"observations": [{"geoUnit": "CHE", "geoUnitName": "Switzerland", "year": 2022, "value": val}]}
+            return {"records": [{"geoUnit": "CHE", "year": 2022, "value": val}]}
 
         with patch("global_education_mcp.server.uis_get_data", side_effect=mock_data):
             result = await uis_country_education_profile(
@@ -996,8 +1013,8 @@ class TestRealisticSchulامtScenarios:
         Kein Länderfilter: Gibt die Formatierungsfunktion sinnvoll aus?
         """
         global_data = {
-            "observations": [
-                {"geoUnit": c, "geoUnitName": c, "year": 2022, "value": v}
+            "records": [
+                {"geoUnit": c, "year": 2022, "value": v}
                 for c, v in [("CHE", 99.0), ("DEU", 99.1), ("MLI", 33.0), ("NER", 27.0)]
             ]
         }

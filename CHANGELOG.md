@@ -7,7 +7,133 @@ Versionierung folgt [Semantic Versioning 2.0](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Behoben
+
+- **Drei von vier UNESCO-UIS-Pfaden gaben HTTP 404 — auf jede Anfrage.**
+  Gebaut wurden `/indicators`, `/geo-units` und `/data`; die Quelle fuehrt
+  `/definitions/indicators`, `/definitions/geounits` und `/data/indicators`.
+  Nur `/versions` stimmte.
+
+  Sichtbar war davon nichts. Jeder betroffene Aufrufer faengt den Fehler und
+  zeigt eine lokale Ersatzliste — ehrlich beschriftet mit «API nicht
+  erreichbar», aber eben eine Liste. Wer den Server benutzte, sah eine
+  Antwort.
+
+- **Der Umschlag der Datenantwort wurde nie gelesen.** Gesucht wurde
+  `observations`, mit `data` als zweitem Versuch und `[]` als drittem. Die
+  Quelle schreibt `records`. Aus **jeder** Antwort kam damit eine leere Liste,
+  und aus einem Formfehler wurde die Aussage «fuer dieses Land gibt es keine
+  Daten» — vollstaendig, plausibel, formatiert und falsch. Gemessen liefert
+  `CR.1`/`CHE` **14 Zeilen**.
+
+  `uis_records()` liest jetzt `records` und trennt dabei zwei Faelle, die
+  vorher denselben Ausgang hatten: Ein leeres `records` ist eine Aussage der
+  Quelle und kommt als leere Liste zurueck. Ein FEHLENDES `records` ist keine
+  Aussage ueber die Daten, sondern ueber die Antwort, und wird als
+  `UpstreamShapeError` gemeldet.
+
+- **12 von 22 Indikator-IDs der lokalen Tabelle gab es in der Quelle nicht:**
+  alle drei `NERA.*`, alle drei `XUNIT.*`, alle drei `PTR.*`, beide `GPI.*`
+  und `SDG4`. Das waren genau die Kategorien, die der Docstring von
+  `uis_list_indicators` bewarb — und weil der API-Pfad zugleich 404 gab und
+  der Aufrufer auf diese Tabelle zurueckfiel, war sie die einzige
+  Indikatorliste, die ein Nutzer je zu sehen bekam.
+
+  Die Tabelle fuehrt jetzt 17 gegen die Quelle gepruefte Codes. Zwei
+  Kategorien fallen ersatzlos weg, weil die UIS sie nicht mehr fuehrt: das
+  Schueler-Lehrer-Verhaeltnis (`PTR.*`) und ein SDG-4-Gesamtindikator. Einen
+  Ersatz zu erfinden waere schlechter als eine fehlende Zeile — eine
+  erfundene ID sieht aus wie eine Antwort.
+
+- **Der Jahresfilter wurde nie angewandt.** Gesendet wurde
+  `startYear`/`endYear`; die OpenAPI der Quelle deklariert `start`/`end`.
+  Unbekannte Query-Parameter lehnt die UIS nicht ab — sie antwortet mit HTTP
+  200 und laesst sie fallen. Eine Abfrage 2015–2018 auf `CR.1`/`CHE` lieferte
+  damit alle 14 Jahre von 2006 bis 2021, und die Ausgabe schrieb das Fenster
+  darueber, das nie gegriffen hatte.
+
+- **Der Themenfilter filterte nie.** `/definitions/indicators` kennt gar
+  keinen `theme`-Parameter. Belegt ist das mit einer Kontrolle:
+  `theme=bogus-theme-den-es-nicht-gibt` liefert dieselben 5063 Zeilen wie
+  `theme=EDUCATION` und wie gar kein Parameter. Gefiltert wird jetzt lokal
+  ueber das Feld `theme` der Zeilen selbst.
+
+- **`hints` las niemand — dabei nennt die Quelle dort den Grund im Klartext.**
+  Ein unbekannter Laendercode ist kein Fehlerstatus: HTTP 200, leeres
+  `records`, und daneben `{"code": "UIS::HINT::003", "message": "The geoUnit
+  could not be found, XXX"}`. Ausgegeben wurde «keine Daten fuer dieses
+  Land». Ein Tippfehler sah damit exakt aus wie ein Befund ueber die Welt.
+  `uis_hints()` liest das Feld; alle vier Datenwerkzeuge geben es aus.
+
+- **`uis_list_indicators` schrieb in jede Zeile ein Fragezeichen.** Gelesen
+  wurde `indicatorId`, dann `id`, dann das Literal `"?"`. Die
+  Definitionsliste der Quelle fuehrt `indicatorCode`. Ausgerechnet das
+  Werkzeug, dessen einzige Aufgabe das Finden einer ID fuer den naechsten
+  Aufruf ist, zeigte fuer alle 5063 Eintraege `?`.
+
+  (In den DATENzeilen heisst dasselbe Feld tatsaechlich `indicatorId`. Zwei
+  Namen fuer dieselbe Sache in derselben API — die Sorte Detail, die man sich
+  nicht ausdenkt und deshalb aufzeichnet.)
+
+- **Der Typfilter von `uis_list_countries` lieferte ausnahmslos nichts.**
+  Verglichen wurde `entityType`; die Quelle schreibt `type`. Der Ausdruck
+  stellte damit immer `"" == "NATIONAL"` an — aus 462 vorhandenen Eintraegen
+  wurden null, gemeldet als «Keine geografischen Einheiten gefunden». Die
+  Parameterbeschreibung bewarb ausserdem `COUNTRY`/`REGION`/`SDG_REGION`; die
+  Quelle fuehrt `NATIONAL` und `REGIONAL`.
+
+- **Die Statusspalte der Zeitreihe war in jeder Zeile leer.** Gelesen wurde
+  `observationStatus`, die Quelle schreibt `qualifier`. Eine UIS-Schaetzung
+  sah damit aus wie ein gemeldeter Wert — bei `LR.AG15T99` betrifft das 1306
+  von 9818 Werten. Die Spalte zeigt jetzt «gemeldet», «UIS-Schaetzung» oder
+  «nationale Schaetzung».
+
+- **Die Laenderuebersicht schrieb «CHE (CHE)».** Der Klammerzusatz sollte den
+  Klarnamen aus `geoUnitName` tragen; dieses Feld fuehrt eine UIS-Datenzeile
+  nicht, der Ausdruck fiel auf den Code zurueck. Ausgegeben wird jetzt der
+  Code, mit einem Verweis auf `uis_list_countries` fuer die Namen — ein
+  erfundener Name waere die schlechtere Antwort als ein blosser Code.
+
 ### Hinzugefuegt
+
+- **Aufgezeichnete Fixtures statt handgeschriebener** — `tests/fixtures/`,
+  `scripts/record_fixtures.py`, `tests/fixture_data.py` und ein
+  `PROVENANCE.md` mit Quelle, Aufzeichnungsdatum, Auswahlregel und SHA-256 je
+  Datei.
+
+  Der Anlass steht oben, aber eine Zahl gehoert daneben: Vor dieser Aenderung
+  hatte dieses Repo **128 gruene Tests**, waehrend drei von vier Pfaden 404
+  gaben und jede Datenabfrage leer zurueckkam. Moeglich war das, weil die
+  Mocks dieselben erfundenen Feldnamen trugen wie der Produktivcode —
+  `observations`, `indicatorId`, `entityType`. Ein Mock aus demselben Kopf
+  kann die Annahme dieses Kopfes nicht widerlegen; wo beide irren, irren
+  beide gleich, und die Suite bleibt gruen.
+
+  Drei der neun Fixtures sind **Kontrollen**: ein erfundener `theme`-Wert,
+  ein erfundener Laendercode und dieselbe Zeitreihe zweimal mit
+  unterschiedlichen Parameternamen. Ohne sie belegt eine Messung nur, was ich
+  bekommen habe — nicht, was die Quelle unterscheidet.
+
+  Das Aufzeichnungsskript importiert Basis-URL und Indikatorentabelle aus dem
+  Produktivcode. Ein Skript, das eine andere Adresse fragt als der Server,
+  misst den falschen Gegenstand, und das faellt niemandem auf, weil das
+  Ergebnis plausibel aussieht.
+
+- **Die ersten Live-Tests dieses Repos.** `pytest -m integration` sammelte
+  vorher null ein — nichts hier war je gegen die Quelle gehalten worden. Neu
+  sind 17, davon 7 gegen die Produktivfunktionen selbst.
+
+  Diese Trennung ist nicht kosmetisch: Eine erste Fassung der Live-Tests baute
+  ihre URLs aus Literalen und blieb gruen, als der Pfad im Produktivcode
+  testweise auf `/indicators` zurueckgesetzt wurde. Was geprueft werden soll,
+  muss der Produktivcode aufbauen.
+
+- **`tests/test_source_contract.py`** haelt die lokale Indikatorentabelle, die
+  Feldnamen der Mocks und die Query-Parameter gegen die Aufzeichnung.
+
+  Gegengeprueft mit neun gezielten Rueckmutationen — je einer pro Befund oben.
+  Alle neun machen die Suite rot; ein Test, der nicht fehlschlagen kann,
+  belegt nichts.
 
 - **`scripts/check_version_sync.py` und ein CI-Schritt dafuer.** Der Check
   vergleicht `pyproject.toml` gegen `server.json` und die README-Badges und
