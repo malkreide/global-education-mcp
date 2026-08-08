@@ -9,6 +9,34 @@ Versionierung folgt [Semantic Versioning 2.0](https://semver.org/lang/de/).
 
 ### Behoben
 
+- **`README.md` hatte zwei `## Installation`-Abschnitte.** Der als
+  `<!-- BEGIN GENERATED: install -->` markierte Block wurde ans Ende
+  angehaengt, ohne dass jemand bemerkte, dass weiter oben bereits einer
+  stand. Zwei gleichnamige Ueberschriften in einem Dokument — und der
+  zweite handelt gar nicht von der Installation, sondern von der
+  MCP-Client-Konfiguration.
+
+  Die Ueberschrift heisst jetzt «MCP Client Configuration». Marker und
+  JSON-Beispiel sind unveraendert.
+
+  Anmerkung fuer spaeter: Die `GENERATED`-Marker legen ein Werkzeug nahe, das
+  diesen Bereich schreibt. Im Repo gibt es keines — weder ein Skript noch ein
+  Workflow beruehrt ihn. Sollte je eines dazukommen, muss es diese
+  Ueberschrift kennen, sonst kehrt die Dopplung zurueck.
+
+- **Die beiden READMEs liefen an dieser Stelle auseinander.** Den Block gab
+  es nur auf Englisch. `README.de.md` fuehrt ihn jetzt ebenfalls, auf
+  Deutsch; beide Dateien haben wieder dieselbe Struktur (117 Bloecke).
+
+  Nicht gespiegelt wird der `<!-- mcp-name: … -->`-Kommentar darueber: Er ist
+  die Eigentumszuordnung fuer die MCP-Registry, muss genau einmal und in
+  `README.md` stehen, und ist als HTML-Kommentar fuer Leser ohnehin
+  unsichtbar. Eine zweite Zuordnung waere keine Uebersetzung, sondern ein
+  zweiter Anspruch.
+
+
+### Behoben
+
 - **Drei von vier UNESCO-UIS-Pfaden gaben HTTP 404 — auf jede Anfrage.**
   Gebaut wurden `/indicators`, `/geo-units` und `/data`; die Quelle fuehrt
   `/definitions/indicators`, `/definitions/geounits` und `/data/indicators`.

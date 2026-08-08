@@ -469,3 +469,24 @@ Hayal Oezkan · [github.com/malkreide](https://github.com/malkreide)
 - **Verwandt:** [swiss-transport-mcp](https://github.com/malkreide/swiss-transport-mcp) – MCP-Server für den Schweizer öffentlichen Verkehr
 - **Verwandt:** [zurich-opendata-mcp](https://github.com/malkreide/zurich-opendata-mcp) – MCP-Server für Zürcher Stadtdaten
 - **Portfolio:** [Swiss Public Data MCP Portfolio](https://github.com/malkreide)
+
+---
+
+<!-- BEGIN GENERATED: install -->
+## MCP-Client-Konfiguration
+
+Ausführen über `uvx` von [`uv`](https://docs.astral.sh/uv/) — kein Klonen, keine manuelle Installation nötig. In die MCP-Client-Konfiguration eintragen (`mcpServers` für Claude Desktop, Cursor und Windsurf; für VS Code in `.vscode/mcp.json` einen `servers`-Schlüssel auf oberster Ebene verwenden):
+
+```json
+{
+  "mcpServers": {
+    "global-education-mcp": {
+      "command": "uvx",
+      "args": [
+        "global-education-mcp"
+      ]
+    }
+  }
+}
+```
+<!-- END GENERATED: install -->
