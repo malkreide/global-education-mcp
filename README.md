@@ -474,7 +474,7 @@ Hayal Oezkan · [github.com/malkreide](https://github.com/malkreide)
 <!-- mcp-name: io.github.malkreide/global-education-mcp -->
 
 <!-- BEGIN GENERATED: install -->
-## Installation
+## MCP Client Configuration
 
 Run via [`uv`](https://docs.astral.sh/uv/)'s `uvx` — no clone or manual install needed. Add to your MCP client config (`mcpServers` for Claude Desktop, Cursor and Windsurf; use a top-level `servers` key for VS Code in `.vscode/mcp.json`):
 
