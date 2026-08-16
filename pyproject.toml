@@ -40,7 +40,11 @@ dependencies = [
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.24",
-    "ruff>=0.5.0",
+    # Exakt gepinnt, identisch zum Pin in .github/workflows/ci.yml. ruff ist ein
+    # Gate, kein Hilfsmittel: Mit einem offenen Bereich holt
+    # `pip install -e ".[dev]"` die jeweils neueste Version, und lokal laeuft
+    # ein anderes Gate als in der CI. Beide Stellen zusammen bumpen.
+    "ruff==0.16.1",
     "build",
 ]
 
