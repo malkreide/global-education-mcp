@@ -47,23 +47,15 @@ Ein Codex-Review auf einem PR wird beantwortet oder behoben, nie ignoriert.
 
 ## Teil 2 — Dieses Repo
 
-**ruff: nur in der CI gepinnt (`ruff==0.16.1`), nirgends sonst.**
-Es gibt keine `.pre-commit-config.yaml`. `pyproject.toml` `[dev]` fordert
-`ruff>=0.5.0` ohne Obergrenze — `pip install -e ".[dev]"` liefert also
-irgendeine Version, nicht 0.16.1 (in dieser Umgebung: 0.15.8). Vor dem
-Lint-Gate explizit `pip install ruff==0.16.1`.
+**ruff: eine Quelle.** Der Pin `0.16.1` steht in `pyproject.toml` — und
+**nicht** mehr als eigener Install-Schritt in der CI.
 
-Gate-Befehle, wörtlich aus `.github/workflows/ci.yml` (Python 3.11/3.12/3.13):
-
-```bash
-pip install -e ".[dev]"
-PYTHONPATH=src pytest tests/ -v -m "not integration"
-pip install ruff==0.16.1
-ruff check src/ tests/ scripts/
-ruff format --check src/ tests/ scripts/
-PYTHONPATH=src python scripts/tool_signatures.py ci
-python scripts/check_version_sync.py
-```
+Der CI-Schritt lief nach dem Install der Abhängigkeiten und überschrieb sie.
+Eine Abweichung im Pin konnte deshalb in der CI gar nicht auffallen, sondern
+nur lokal — wo niemand sie erwartet. Ein manuelles Nachinstallieren von ruff
+vor den Gates ist damit nicht mehr nötig und wäre schädlich: Es würde eine
+spätere Anhebung hier stillschweigend überstimmen.ignatures.py ci python
+scripts/check_version_sync.py ```
 
 Danach baut der Job `docker` das gehärtete Image und macht einen
 Smoke-Test (TCP :8000, uid 10001, read-only-FS).
