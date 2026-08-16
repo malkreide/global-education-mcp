@@ -54,21 +54,38 @@ Der CI-Schritt lief nach dem Install der Abhängigkeiten und überschrieb sie.
 Eine Abweichung im Pin konnte deshalb in der CI gar nicht auffallen, sondern
 nur lokal — wo niemand sie erwartet. Ein manuelles Nachinstallieren von ruff
 vor den Gates ist damit nicht mehr nötig und wäre schädlich: Es würde eine
-spätere Anhebung hier stillschweigend überstimmen.ignatures.py ci python
-scripts/check_version_sync.py ```
+spätere Anhebung hier stillschweigend überstimmen.
+`tests/test_werkzeug_versionen.py` fällt, wenn hier wieder eine Spanne steht
+oder ein Workflow eine zweite Version setzt — dieser Absatz kann das nicht,
+er ist beim letzten Umschreiben selbst kaputtgegangen.
+
+**Gate-Befehle, wörtlich aus `.github/workflows/ci.yml`** (Python 3.11/3.12/3.13):
+
+```bash
+pip install -e ".[dev]"
+PYTHONPATH=src pytest tests/ -v -m "not integration"
+ruff check src/ tests/ scripts/
+ruff format --check src/ tests/ scripts/
+PYTHONPATH=src python scripts/tool_signatures.py ci
+python scripts/check_version_sync.py
+```
 
 Danach baut der Job `docker` das gehärtete Image und macht einen
 Smoke-Test (TCP :8000, uid 10001, read-only-FS).
 
-**Befund — Live-Tests laufen nie (DRIFT-005).** Kein Workflow hat einen
-cron-Trigger; `ci.yml` läuft nur auf push/PR gegen `main`. Live-Tests sind
-ausschliesslich per Marker ausgeschlossen (`-m "not integration"`, Marker
-heisst hier `integration`, nicht `live`) und werden von nichts geplant
-ausgeführt. Die `@pytest.mark.integration`-Klassen in
-`tests/test_source_contract.py` und `tests/test_extended_scenarios.py` sind
-die einzigen Tests, die einen Schreibweisen-Wechsel der Quelle bemerken
-würden — sie sind faktisch tot. (Der Katalog in `audits/*/catalog.json` führt die
-DRIFT-Familie noch nicht; die Regel gilt trotzdem.)
+**Live-Tests: DRIFT-005 ist erfüllt.** `.github/workflows/live-tests.yml`
+fährt `pytest tests/ -m integration` planmässig gegen `api.uis.unesco.org`:
+cron `23 4 * * 1` plus `workflow_dispatch`, mit Einordnung über
+`scripts/classify_live_run.py` und automatischem `upstream`-Issue. Der Marker
+heisst hier `integration`, nicht `live`; die PR-CI schliesst ihn weiterhin per
+`-m "not integration"` aus, und das ist korrekt, weil der geplante Lauf
+existiert.
+
+Hier stand das Gegenteil — «Live-Tests laufen nie», «sie sind faktisch tot» —
+und es war einen Tag lang richtig: Die CLAUDE.md entstand am 14.08.2026,
+`live-tests.yml` kam am 15.08.2026 dazu (`de682ae`). Ein Befund in Prosa
+altert still. (Der Katalog in `audits/*/catalog.json` führt die DRIFT-Familie
+noch nicht; die Regel gilt trotzdem.)
 
 Fixtures: `scripts/record_fixtures.py`, Aufnahmedatum in
 `tests/fixtures/PROVENANCE.md` (aktuell 2026-08-08). Nicht von Hand pflegen.

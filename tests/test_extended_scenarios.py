@@ -1035,7 +1035,10 @@ class TestRealisticSchulامtScenarios:
 class TestLiveApiSmoke:
     """
     Live-API-Tests gegen echte Endpunkte.
-    Markiert mit @pytest.mark.integration – nur mit --run-integration ausführen.
+    Markiert mit @pytest.mark.integration – ausgewählt über `-m integration`,
+    so wie es `.github/workflows/live-tests.yml` wöchentlich tut. Einen
+    Schalter `--run-integration` gibt es nicht: Er steht in keiner conftest,
+    und wer danach greift, bekommt einen Argument-Fehler statt der Tests.
     Akzeptieren Netzwerkfehler als tolerierten Ausfall (nicht als Testfehler).
     """
 
