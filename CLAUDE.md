@@ -85,7 +85,15 @@ python scripts/check_version_sync.py
 ```
 
 Danach baut der Job `docker` das gehärtete Image und macht einen
-Smoke-Test (TCP :8000, uid 10001, read-only-FS).
+Smoke-Test (TCP :8000, uid 10001, read-only-FS). Er hat `needs: test` — ein
+rotes `test` heisst also nicht «Image kaputt», sondern dass `docker` gar nie
+lief. Lokal ist das der eine Gate, der ohne Docker nicht nachstellbar ist.
+
+Das `PYTHONPATH=src` in drei der Zeilen steht dort, weil sie wörtlich aus
+`ci.yml` stammen — tragend ist es nicht. Nach `pip install -e ".[dev]"`
+importiert `global_education_mcp` auch mit `env -u PYTHONPATH`. Wer einen
+Importfehler über den Env-Eintrag erklärt, sucht an der falschen Stelle: es
+fehlt dann der Install.
 
 **Live-Tests: DRIFT-005 ist erfüllt.** `.github/workflows/live-tests.yml`
 fährt `pytest tests/ -m integration` planmässig gegen `api.uis.unesco.org`:
