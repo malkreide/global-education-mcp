@@ -7,6 +7,18 @@ Versionierung folgt [Semantic Versioning 2.0](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefuegt
+
+- **Frischehinweise auf den auflistenden Methoden** (SEP-2549, Spec
+  `2026-07-28`): `ttlMs` 300000, `cacheScope` `public`. Das SDK setzt beides von
+  sich aus auf «sofort veraltet, nie geteilt» — wer nichts übergibt, lässt jeden
+  Client bei jeder Verbindung neu auflisten, für Verzeichnisse, die per
+  Dekorator beim Import feststehen und nicht vom Aufrufer abhängen.
+
+  `resources/read` und `prompts/get` bleiben ohne Hinweis: das wäre eine
+  Zusicherung über den Inhalt statt über das Verzeichnis. Ein Test hält das an
+  der Antwort fest, ein zweiter an der Konfiguration.
+
 ### Behoben
 
 - **`README.md` hatte zwei `## Installation`-Abschnitte.** Der als
