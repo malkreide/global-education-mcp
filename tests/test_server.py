@@ -765,7 +765,11 @@ class TestLoggedToolDecorator:
 
 
 class _MockContext:
-    """Minimal stand-in fuer MCPServer Context im Unit-Test."""
+    """Minimal stand-in fuer MCPServer Context im Unit-Test.
+
+    `info` zeichnet weiter auf, obwohl der Server es nicht mehr ruft: nur so
+    kann ein Test zusichern, dass es leer bleibt (SEP-2577, Spec 2026-07-28).
+    """
 
     def __init__(self) -> None:
         self.infos: list[str] = []
@@ -779,7 +783,12 @@ class _MockContext:
 
 
 class TestContextInjection:
-    """Progress + Info werden bei den Long-Running-Tools gemeldet (SDK-003)."""
+    """Fortschritt wird bei den Long-Running-Tools gemeldet (SDK-003).
+
+    Die Ansage vor dem Fan-out ist Fortschritt 0 von n, nicht mehr `ctx.info()`
+    — die Logging-Capability ist mit Spec 2026-07-28 abgekuendigt (SEP-2577).
+    Deshalb n+1 Ereignisse, und `ctx.infos` bleibt leer.
+    """
 
     @pytest.mark.asyncio
     async def test_compare_countries_reports_per_country_progress(self):
@@ -795,9 +804,10 @@ class TestContextInjection:
                 ),
                 ctx=ctx,
             )
-        assert len(ctx.progress) == 3
+        assert len(ctx.progress) == 1 + 3
+        assert ctx.progress[0][:2] == (0, 3) and "Vergleiche 3 Länder" in ctx.progress[0][2]
         assert ctx.progress[-1][0] == 3 and ctx.progress[-1][1] == 3
-        assert any("Vergleiche" in m for m in ctx.infos)
+        assert ctx.infos == []
 
     @pytest.mark.asyncio
     async def test_country_profile_reports_indicator_progress(self):
@@ -810,9 +820,11 @@ class TestContextInjection:
                 UISCountryProfileInput(country_code="CHE"),
                 ctx=ctx,
             )
-        # 10 Schluesselindikatoren -> 10 Progress-Events
-        assert len(ctx.progress) == 10
+        # Ansage + 10 Schluesselindikatoren -> 11 Progress-Events
+        assert len(ctx.progress) == 1 + 10
+        assert ctx.progress[0] == (0, 10, "Lade 10 Schlüsselindikatoren für CHE")
         assert ctx.progress[-1] == (10, 10, "GPI.NERA.1 fertig")
+        assert ctx.infos == []
 
     @pytest.mark.asyncio
     async def test_benchmark_reports_total_calls_progress(self):
@@ -825,9 +837,11 @@ class TestContextInjection:
                 CrossSourceInput(country_codes=["CHE", "DEU", "FIN"], focus="literacy"),
                 ctx=ctx,
             )
-        # 2 Indikatoren (literacy) x 3 Laender = 6 Calls
-        assert len(ctx.progress) == 6
+        # Ansage + 2 Indikatoren (literacy) x 3 Laender = 1 + 6 Events
+        assert len(ctx.progress) == 1 + 6
+        assert ctx.progress[0][:2] == (0, 6) and "= 6 Calls" in ctx.progress[0][2]
         assert ctx.progress[-1][0] == 6 and ctx.progress[-1][1] == 6
+        assert ctx.infos == []
 
     @pytest.mark.asyncio
     async def test_tools_work_without_ctx(self):
@@ -847,7 +861,8 @@ class TestContextInjection:
 
     @pytest.mark.asyncio
     async def test_ctx_exception_does_not_break_tool(self):
-        """Eine kaputte ctx.info darf den Tool-Call nicht zerlegen."""
+        """Ein kaputtes ctx.report_progress darf den Tool-Call nicht zerlegen —
+        auch nicht bei der Ansage, die jetzt ueber denselben Kanal laeuft."""
 
         class BrokenCtx:
             async def info(self, *a, **kw):

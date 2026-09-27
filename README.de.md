@@ -40,7 +40,7 @@ Der Server verbindet zwei der massgeblichsten Quellen für international verglei
 - 🎯 **SDG-4-Monitoring** – strukturierte Berichte zu den Education-for-All-Zielen
 - 📈 **OECD-Datensatzsuche** – Education at a Glance Dataflows entdecken und abrufen
 - 🔑 **Kein API-Key erforderlich** – vollständig offene Daten, kein Setup-Aufwand
-- ☁️ **Dual Transport** – stdio für Claude Desktop, Streamable HTTP/SSE für Cloud-Deployment
+- ☁️ **Dual Transport** – stdio für Claude Desktop, Streamable HTTP (`/mcp`, Spec `2026-07-28`) für Cloud-Deployment
 - 🛡️ **Graceful Degradation** – API-Ausfälle liefern hilfreiche Fehlermeldungen mit lokalem Referenz-Fallback
 
 ---
@@ -118,12 +118,12 @@ Sofort in Claude Desktop ausprobieren:
 
 Eine einsatzbereite `claude_desktop_config.json` liegt im Repository-Root.
 
-### Cloud-Deployment (SSE für Browser-Zugriff)
+### Cloud-Deployment (Streamable HTTP für Browser-Zugriff)
 
 Für den Einsatz via **claude.ai im Browser** (z.B. auf verwalteten Arbeitsplätzen ohne lokale Software-Installation).
 
 > ⚠️ **Sicherheitshinweis:** Seit v0.3 ist `MCP_HOST` per Default `127.0.0.1`.
-> Der SSE-Transport muss **zwingend** hinter einem Reverse-Proxy laufen, der
+> Der HTTP-Transport muss **zwingend** hinter einem Reverse-Proxy laufen, der
 > TLS, Authentifizierung und Rate-Limiting ergänzt. Den rohen Port niemals
 > ins Internet exponieren — `MCP_HOST=0.0.0.0` ist nur innerhalb eines
 > isolierten Container-Netzes sicher.
@@ -138,7 +138,7 @@ dem Host ist für externen Zugriff zwingend.
 
 ```bash
 docker compose up --build
-# danach nginx/caddy auf 127.0.0.1:8000/sse mit TLS + Auth richten
+# danach nginx/caddy auf 127.0.0.1:8000/mcp mit TLS + Auth richten
 ```
 
 Plain `docker run` (ohne Compose):
@@ -157,13 +157,22 @@ docker run --rm \
 2. Auf [render.com](https://render.com): New Web Service → GitHub-Repo verbinden
 3. Umgebungsvariablen im Render-Dashboard setzen:
    ```
-   MCP_TRANSPORT=sse
+   MCP_TRANSPORT=streamable-http
    MCP_HOST=0.0.0.0      # Render verlangt 0.0.0.0; deren Edge-Layer liefert TLS + Auth.
    PORT=8000
    ```
-4. In claude.ai unter Settings → MCP Servers eintragen: `https://your-app.onrender.com/sse`
+4. In claude.ai unter Settings → MCP Servers eintragen: `https://your-app.onrender.com/mcp`
 
-> 💡 *«stdio für den Entwickler-Laptop, sandboxed SSE-Container für den Browser.»*
+**Umstieg von SSE.** Bis v0.3.5 startete der Container mit `MCP_TRANSPORT=sse`
+und dem Endpunkt `/sse`. Standard ist jetzt `streamable-http` unter `/mcp` —
+der Transport, über den `2026-07-28`-Clients ihre Einzel-POSTs schicken; SSE
+ist seit Spec `2025-03-26` abgelöst und hat diesen Weg nie angeboten.
+Bestehende Deployments stellen entweder die Client-URL auf `/mcp` um oder
+setzen `MCP_TRANSPORT=sse` ausdrücklich; der Server schreibt dann beim Start
+eine `legacy_transport_warning`. Ein unbekannter `MCP_TRANSPORT`-Wert bricht
+den Start jetzt ab, statt still auf stdio zurückzufallen.
+
+> 💡 *«stdio für den Entwickler-Laptop, sandboxed Streamable-HTTP-Container für den Browser.»*
 
 ---
 
@@ -240,7 +249,7 @@ ISO 3166-1 Alpha-3 Standard:
 └─────────────────┘     │                              │     └────────────────────┘
                         │  10 Tools · 2 Ressourcen     │
                         │   · 2 Prompts                │     ┌────────────────────┐
-                        │  Stdio | SSE                 │────▶│   OECD SDMX API    │
+                        │  stdio | Streamable HTTP     │────▶│   OECD SDMX API    │
                         │                              │◀────│   sdmx.oecd.org    │
                         │  server.py                   │     └────────────────────┘
                         │   + api_client.py            │
@@ -384,12 +393,28 @@ aus der jeweils anderen Aera wird abgewiesen.
 | `initialize`-Handshake | `2024-11-05` … **`2025-11-25`** | Was heutige Clients sprechen. Der Server antwortet mit der angefragten Revision — oder mit der Obergrenze `2025-11-25`, wenn die Anfrage etwas Neueres verlangt. |
 | Pro-Request-Envelope | **`2026-07-28`** | Eine Anfrage mit dem `2026-07-28`-`_meta`-Envelope oeffnet eine moderne Verbindung. |
 
+Über HTTP teilen sich beide Aeren den Endpunkt `/mcp`
+(`MCP_TRANSPORT=streamable-http`, stateless): eine Anfrage mit dem Header
+`MCP-Protocol-Version: 2026-07-28` wird als abgeschlossener Einzelaustausch
+bedient — kein `initialize`, keine `Mcp-Session-Id`. Der Legacy-Transport SSE
+(`MCP_TRANSPORT=sse`) bietet diesen Weg nicht und erreicht nur die
+Handshake-Aera.
+
 Beide Revisionen sind in
 [`tests/test_protocol_version.py`](tests/test_protocol_version.py) gepinnt und
 werden gegen das installierte SDK geprueft; ein Dependabot-Bump von `mcp` kann
-also keine der beiden still verschieben. Dieser Server baut keine ASGI-App, durch die sich ein `initialize`
-schicken liesse; das Gate sichert deshalb die SDK-Konstanten statt einer
-gemessenen Antwort — die schwaechere Form, benannt statt verschwiegen.
+also keine der beiden still verschieben.
+[`tests/test_streamable_http.py`](tests/test_streamable_http.py) misst sie: er
+baut die HTTP-App mit den Optionen, mit denen `main()` startet, und schickt
+einen `2026-07-28`-Client, einen `auto`-Client, ein Legacy-`initialize` und ein
+rohes `server/discover` hindurch. Der Docker-Job der CI schickt dasselbe
+`server/discover` an den gehärteten Container.
+
+**Was `2026-07-28` für diesen Server ändert.** Die Logging-Capability ist
+abgekündigt (SEP-2577) und wird nicht benutzt: Ansagen vor einem Fan-out reisen
+als Fortschritt `0 von n`, Betriebslogs gehen als JSON auf stderr. `serverInfo`,
+das jetzt im `_meta` jeder Antwort mitreist, trägt die Paketversion. Die
+auflistenden Methoden tragen Frischehinweise (`ttlMs`, `cacheScope`, SEP-2549).
 
 Zu beachten: `LATEST_PROTOCOL_VERSION` im SDK ist ein Alias auf die **moderne**
 Aera, nicht auf die Handshake-Aera — wer nur dagegen pinnt, laesst genau die

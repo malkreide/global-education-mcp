@@ -147,12 +147,12 @@ compares, country profiles, benchmarks) accept an optional FastMCP
 `Context` parameter and emit progress events:
 
 ```python
-from mcp.server.fastmcp import Context
+from mcp.server.mcpserver import Context
 
 @mcp.tool(...)
 @logged_tool
 async def my_long_tool(params: MyInput, ctx: Optional[Context] = None) -> str:
-    await _ctx_info(ctx, f"Starting {len(params.items)} fetches")
+    await _ctx_progress(ctx, 0, len(params.items), f"Starting {len(params.items)} fetches")
     progress = {"done": 0}
 
     async def fetch(item):
@@ -166,9 +166,15 @@ async def my_long_tool(params: MyInput, ctx: Optional[Context] = None) -> str:
     ...
 ```
 
-The `_ctx_*` helpers in `server.py` are no-ops when `ctx is None` (unit
+`_ctx_progress` in `server.py` is a no-op when `ctx is None` (unit
 tests). Tool functions never crash because of a broken context — the
-helpers swallow any exception from `ctx.info` / `ctx.report_progress`.
+helper swallows any exception from `ctx.report_progress`.
+
+Do **not** use `ctx.info()` / `ctx.log()` for the announcement: the logging
+capability is deprecated as of spec `2026-07-28` (SEP-2577), and on a modern
+connection the SDK only delivers `notifications/message` when the request opted
+in with a log level. Send it as progress `0` of `total` instead, as above.
+`tests/test_streamable_http.py` fails on any `ctx.<logging>()` call.
 
 FastMCP detects the `Context` type annotation and auto-injects when the
 host calls the tool. It is excluded from the generated input schema, so

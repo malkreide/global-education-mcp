@@ -9,6 +9,50 @@ Versionierung folgt [Semantic Versioning 2.0](https://semver.org/lang/de/).
 
 ### Hinzugefuegt
 
+- **Streamable HTTP als HTTP-Transport — Spec `2026-07-28` nativ erreichbar.**
+  `MCP_TRANSPORT=streamable-http` bedient unter `/mcp` beide Aeren: den
+  `initialize`-Handshake bis `2025-11-25` und den modernen Einzel-POST mit
+  `MCP-Protocol-Version: 2026-07-28` — ohne `initialize`, ohne
+  `Mcp-Session-Id`. Stateless, weil der Server dem Client keine Rueckfragen
+  stellt und keinen Zustand pro Verbindung haelt.
+
+  Bisher bot der Server nur stdio und SSE an. SSE ist seit Spec `2025-03-26`
+  abgeloest und kennt den Einzel-POST nicht; ein moderner Client erreichte
+  den Container also gar nicht in seiner Revision.
+
+- **Protokoll-Gate misst jetzt statt nur Konstanten zu vergleichen**
+  (`tests/test_streamable_http.py`). Die App entsteht aus denselben Optionen,
+  mit denen `main()` startet; hindurch gehen ein `2026-07-28`-Client, ein
+  `auto`-Client, ein Legacy-`initialize` (auch mit zu neuer Revision) und ein
+  rohes `server/discover` ohne SDK-Client. Der Docker-Smoke-Test in `ci.yml`
+  schickt dasselbe `server/discover` per curl an den gehaerteten Container,
+  statt nur den TCP-Port zu pruefen.
+
+### Geaendert
+
+- **Container-Default von `sse` auf `streamable-http`** (Dockerfile,
+  `docker-compose.yml`, CI-Smoke-Test). Wer einen bestehenden Client auf
+  `/sse` zeigen laesst, stellt die URL auf `/mcp` um oder setzt
+  `MCP_TRANSPORT=sse` ausdruecklich; der Server schreibt dann beim Start eine
+  `legacy_transport_warning`.
+
+- **Keine Aufrufe der Logging-Capability mehr.** Die Ansage vor dem Fan-out in
+  `uis_compare_countries`, `uis_country_education_profile` und
+  `education_benchmark_countries` lief ueber `ctx.info()`. Die Capability ist
+  mit `2026-07-28` abgekuendigt (SEP-2577); in der modernen Aera stellt das SDK
+  `notifications/message` nur zu, wenn die Anfrage einen Log-Level in `_meta`
+  mitbringt, und jeder Aufruf warf eine `MCPDeprecationWarning`. Die Ansage
+  reist jetzt als Fortschritt `0 von n` und kommt in beiden Aeren an.
+
+- **`serverInfo.version` traegt die Paketversion.** Ab `2026-07-28` reist
+  `serverInfo` im `_meta` jeder Antwort mit; dort stand `"version": ""`.
+
+### Behoben
+
+- **Ein unbekannter `MCP_TRANSPORT`-Wert startete still stdio.** Im Container
+  hiess das: kein offener Port, keine Fehlermeldung. Jetzt bricht der Start mit
+  der Liste der erlaubten Werte ab.
+
 - **Frischehinweise auf den auflistenden Methoden** (SEP-2549, Spec
   `2026-07-28`): `ttlMs` 300000, `cacheScope` `public`. Das SDK setzt beides von
   sich aus auf «sofort veraltet, nie geteilt» — wer nichts übergibt, lässt jeden

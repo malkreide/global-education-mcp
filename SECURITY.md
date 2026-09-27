@@ -32,7 +32,7 @@ Instead, use one of the following private channels:
 Please include, as far as possible:
 
 - A description of the vulnerability and its potential impact
-- The affected version, tool, or component (e.g. `uis_get_education_data`, SSE transport, Docker image)
+- The affected version, tool, or component (e.g. `uis_get_education_data`, HTTP transport, Docker image)
 - Step-by-step reproduction instructions or a proof of concept
 - Any relevant logs, configuration, or environment details
 
@@ -68,9 +68,9 @@ This server is **read-only** and processes **no personal data** — both design 
 - **Tool-signature lockfile** — all MCP tool signatures (name, description, input schema, annotations) are pinned in `tools.lock.json`. CI fails on any unreviewed change or on prompt-injection markers in tool descriptions, guarding against tool-poisoning / rug-pull attacks (audit findings SEC-022 + SEC-015).
 - **Pinned dependency bounds** — `pyproject.toml` sets explicit upper bounds so a transitive bump cannot silently break or alter the server.
 
-### Deployment Hardening (SSE / Cloud)
+### Deployment Hardening (HTTP / Cloud)
 
-The SSE transport must **always** run behind a reverse proxy that adds TLS, authentication, and rate-limiting. Since v0.3, `MCP_HOST` defaults to `127.0.0.1`; `MCP_HOST=0.0.0.0` is only safe inside an isolated container network.
+The HTTP transport (Streamable HTTP, or legacy SSE) must **always** run behind a reverse proxy that adds TLS, authentication, and rate-limiting. Since v0.3, `MCP_HOST` defaults to `127.0.0.1`; `MCP_HOST=0.0.0.0` is only safe inside an isolated container network.
 
 The shipped `Dockerfile` and `docker-compose.yml` apply defence-in-depth: `read_only: true`, `cap_drop: [ALL]`, `security_opt: [no-new-privileges:true]`, a non-root user (`uid 10001`), and port binding to `127.0.0.1`.
 
@@ -78,7 +78,7 @@ The shipped `Dockerfile` and `docker-compose.yml` apply defence-in-depth: `read_
 
 ## Scope
 
-In scope: the server code (`src/global_education_mcp/`), the MCP tool surface, the Docker/SSE deployment artefacts, and the supply-chain controls described above.
+In scope: the server code (`src/global_education_mcp/`), the MCP tool surface, the Docker/HTTP deployment artefacts, and the supply-chain controls described above.
 
 Out of scope: vulnerabilities in the upstream data providers (UNESCO UIS, OECD), the underlying Python runtime or third-party libraries (please report those to the respective projects), and issues that require a pre-compromised host.
 
