@@ -40,7 +40,7 @@ The server bridges two of the most authoritative sources for internationally com
 - 🎯 **SDG-4 monitoring** – structured reporting on Education for All targets
 - 📈 **OECD dataset search** – discover and retrieve Education at a Glance dataflows
 - 🔑 **No API keys required** – fully open data, zero setup friction
-- ☁️ **Dual transport** – stdio for Claude Desktop, Streamable HTTP/SSE for cloud deployment
+- ☁️ **Dual transport** – stdio for Claude Desktop, Streamable HTTP (`/mcp`, spec `2026-07-28`) for cloud deployment
 - 🛡️ **Graceful degradation** – API failures return helpful messages with local reference fallback
 
 ---
@@ -118,12 +118,12 @@ Try it immediately in Claude Desktop:
 
 A ready-to-use `claude_desktop_config.json` is included in the repository root.
 
-### Cloud Deployment (SSE for browser access)
+### Cloud Deployment (Streamable HTTP for browser access)
 
 For use via **claude.ai in the browser** (e.g. on managed workstations without local software).
 
 > ⚠️ **Security note:** Since v0.3, `MCP_HOST` defaults to `127.0.0.1`. The
-> SSE transport must **always** run behind a reverse proxy that adds TLS,
+> HTTP transport must **always** run behind a reverse proxy that adds TLS,
 > authentication, and rate-limiting. Never expose the raw port to the
 > internet — `MCP_HOST=0.0.0.0` is only safe inside an isolated
 > container network.
@@ -138,7 +138,7 @@ reverse proxy is required for any external access.
 
 ```bash
 docker compose up --build
-# then point nginx/caddy at 127.0.0.1:8000/sse with TLS + auth
+# then point nginx/caddy at 127.0.0.1:8000/mcp with TLS + auth
 ```
 
 Plain `docker run` (without compose):
@@ -157,13 +157,22 @@ docker run --rm \
 2. On [render.com](https://render.com): New Web Service → connect GitHub repo
 3. Set environment variables in the Render dashboard:
    ```
-   MCP_TRANSPORT=sse
+   MCP_TRANSPORT=streamable-http
    MCP_HOST=0.0.0.0      # Render needs 0.0.0.0; their edge layer provides TLS + auth.
    PORT=8000
    ```
-4. In claude.ai under Settings → MCP Servers, add: `https://your-app.onrender.com/sse`
+4. In claude.ai under Settings → MCP Servers, add: `https://your-app.onrender.com/mcp`
 
-> 💡 *"stdio for the developer laptop, sandboxed SSE container for the browser."*
+**Migrating from SSE.** Up to v0.3.5 the container defaulted to `MCP_TRANSPORT=sse`
+with the endpoint `/sse`. The default is now `streamable-http` at `/mcp` — the
+transport through which `2026-07-28` clients send their single-POST requests;
+SSE has been superseded since spec `2025-03-26` and never offered that path.
+Existing deployments either switch the client URL to `/mcp` or set
+`MCP_TRANSPORT=sse` explicitly; the server then logs a
+`legacy_transport_warning` on start. An unknown `MCP_TRANSPORT` value now
+aborts the start instead of silently falling back to stdio.
+
+> 💡 *"stdio for the developer laptop, sandboxed Streamable HTTP container for the browser."*
 
 ---
 
@@ -240,7 +249,7 @@ ISO 3166-1 Alpha-3 standard:
 └─────────────────┘     │                              │     └────────────────────┘
                         │  10 Tools · 2 Resources      │
                         │   · 2 Prompts                │     ┌────────────────────┐
-                        │  Stdio | SSE                 │────▶│   OECD SDMX API    │
+                        │  stdio | Streamable HTTP     │────▶│   OECD SDMX API    │
                         │                              │◀────│   sdmx.oecd.org    │
                         │  server.py                   │     └────────────────────┘
                         │   + api_client.py            │
@@ -385,12 +394,26 @@ other era is refused.
 | `initialize` handshake | `2024-11-05` … **`2025-11-25`** | What today's clients speak. The server answers with the revision asked for, or with the `2025-11-25` ceiling when the request asks for something newer. |
 | Per-request envelope | **`2026-07-28`** | A request carrying the `2026-07-28` `_meta` envelope opens a modern connection. |
 
+Over HTTP both eras share the endpoint `/mcp` (`MCP_TRANSPORT=streamable-http`,
+stateless): a request with the `MCP-Protocol-Version: 2026-07-28` header is
+served as a self-contained single exchange — no `initialize`, no
+`Mcp-Session-Id`. The legacy SSE transport (`MCP_TRANSPORT=sse`) offers no such
+path and reaches the handshake era only.
+
 Both revisions are pinned in
 [`tests/test_protocol_version.py`](tests/test_protocol_version.py) and asserted
 against the installed SDK, so a Dependabot bump of `mcp` cannot move either one
-silently. This server builds no ASGI app to send an `initialize` through, so
-the gate asserts the SDK constants rather than a measured response — the
-weaker form, named rather than left unsaid.
+silently. [`tests/test_streamable_http.py`](tests/test_streamable_http.py)
+measures them: it builds the HTTP app with the options `main()` starts, and
+sends a `2026-07-28` client, an `auto` client, a legacy `initialize` and a raw
+`server/discover` through it. The CI Docker job sends the same
+`server/discover` to the hardened container.
+
+**What `2026-07-28` changes for this server.** The logging capability is
+deprecated (SEP-2577) and is not used: announcements before a fan-out travel as
+progress `0 of n`, operational logs go to stderr as JSON. `serverInfo`, which
+now rides in `_meta` on every response, carries the package version. List
+methods carry freshness hints (`ttlMs`, `cacheScope`, SEP-2549).
 
 Note that the SDK's `LATEST_PROTOCOL_VERSION` is an alias for the **modern**
 era, not for the handshake era — pinning against it alone would leave the era

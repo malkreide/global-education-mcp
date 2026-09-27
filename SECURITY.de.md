@@ -32,7 +32,7 @@ Nutze stattdessen einen der folgenden privaten Kanäle:
 Bitte gib, soweit möglich, an:
 
 - Eine Beschreibung der Schwachstelle und ihrer möglichen Auswirkungen
-- Die betroffene Version, das betroffene Tool oder die betroffene Komponente (z. B. `uis_get_education_data`, SSE-Transport, Docker-Image)
+- Die betroffene Version, das betroffene Tool oder die betroffene Komponente (z. B. `uis_get_education_data`, HTTP-Transport, Docker-Image)
 - Schritt-für-Schritt-Anleitung zur Reproduktion oder einen Proof of Concept
 - Relevante Logs, Konfigurationen oder Umgebungsdetails
 
@@ -68,9 +68,9 @@ Dieser Server ist **schreibgeschützt** und verarbeitet **keine personenbezogene
 - **Tool-Signatur-Lockfile** — alle MCP-Tool-Signaturen (Name, Beschreibung, Input-Schema, Annotationen) sind in `tools.lock.json` fixiert. CI schlägt bei jeder ungeprüften Änderung oder bei Prompt-Injection-Markern in Tool-Beschreibungen fehl und schützt so vor Tool-Poisoning-/Rug-Pull-Angriffen (Audit-Befunde SEC-022 + SEC-015).
 - **Fixierte Abhängigkeitsgrenzen** — `pyproject.toml` setzt explizite Obergrenzen, sodass ein transitives Update den Server nicht still brechen oder verändern kann.
 
-### Deployment-Härtung (SSE / Cloud)
+### Deployment-Härtung (HTTP / Cloud)
 
-Der SSE-Transport muss **immer** hinter einem Reverse-Proxy laufen, der TLS, Authentifizierung und Rate-Limiting ergänzt. Seit v0.3 ist `MCP_HOST` standardmässig `127.0.0.1`; `MCP_HOST=0.0.0.0` ist nur innerhalb eines isolierten Container-Netzwerks sicher.
+Der HTTP-Transport (Streamable HTTP oder Legacy-SSE) muss **immer** hinter einem Reverse-Proxy laufen, der TLS, Authentifizierung und Rate-Limiting ergänzt. Seit v0.3 ist `MCP_HOST` standardmässig `127.0.0.1`; `MCP_HOST=0.0.0.0` ist nur innerhalb eines isolierten Container-Netzwerks sicher.
 
 Das mitgelieferte `Dockerfile` und `docker-compose.yml` wenden Defense-in-Depth an: `read_only: true`, `cap_drop: [ALL]`, `security_opt: [no-new-privileges:true]`, einen Non-Root-Benutzer (`uid 10001`) und die Port-Bindung an `127.0.0.1`.
 
@@ -78,7 +78,7 @@ Das mitgelieferte `Dockerfile` und `docker-compose.yml` wenden Defense-in-Depth 
 
 ## Geltungsbereich
 
-Im Geltungsbereich: der Server-Code (`src/global_education_mcp/`), die MCP-Tool-Oberfläche, die Docker-/SSE-Deployment-Artefakte und die oben beschriebenen Supply-Chain-Kontrollen.
+Im Geltungsbereich: der Server-Code (`src/global_education_mcp/`), die MCP-Tool-Oberfläche, die Docker-/HTTP-Deployment-Artefakte und die oben beschriebenen Supply-Chain-Kontrollen.
 
 Ausserhalb des Geltungsbereichs: Schwachstellen in den Upstream-Datenanbietern (UNESCO UIS, OECD), in der zugrunde liegenden Python-Laufzeit oder in Drittanbieter-Bibliotheken (bitte dort melden) sowie Probleme, die einen bereits kompromittierten Host voraussetzen.
 

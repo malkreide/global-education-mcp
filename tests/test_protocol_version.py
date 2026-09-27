@@ -28,10 +28,11 @@ Nachgemessen statt aus Konstantennamen geschlossen: die Aushandlung steht in
 
 — sie haengt an keinem Transport, gilt also fuer stdio ebenso wie fuer HTTP.
 
-Ohne gemessenen Teil: dieses Repo baut keine ASGI-App, durch die sich ein
-`initialize` schicken liesse. Die Zusicherungen unten haengen deshalb an den
-SDK-Konstanten. Das ist die schwaechere Form, und sie steht hier benannt statt
-unausgesprochen.
+Die Zusicherungen hier haengen an den SDK-Konstanten. Gemessen werden beide
+Aeren in `tests/test_streamable_http.py`, durch die HTTP-App, die `main()` mit
+`MCP_TRANSPORT=streamable-http` startet. Frueher fehlte dieser Teil: der Server
+bot nur stdio und SSE an, und es gab keine ASGI-App, durch die sich ein
+`initialize` haette schicken lassen.
 """
 
 from __future__ import annotations

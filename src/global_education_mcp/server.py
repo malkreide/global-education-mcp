@@ -27,7 +27,7 @@ from mcp.server.caching import CacheableMethod, CacheHint
 from mcp.server.mcpserver import Context, MCPServer
 from pydantic import BaseModel, ConfigDict, Field
 
-from . import api_client
+from . import __version__, api_client
 from .api_client import (
     LIMITS,
     OECD_EDUCATION_DATAFLOWS,
@@ -55,17 +55,16 @@ logger = logging.getLogger("global_education_mcp.tool")
 _F = TypeVar("_F", bound=Callable[..., Awaitable[Any]])
 
 
-async def _ctx_info(ctx: Optional[Context], message: str) -> None:
-    """ctx.info() if available, else no-op (Unit-Tests rufen ohne ctx auf)."""
-    if ctx is not None:
-        try:
-            await ctx.info(message)
-        except Exception:  # noqa: BLE001 - Progress darf nie den Tool-Call brechen
-            pass
-
-
 async def _ctx_progress(ctx: Optional[Context], current: float, total: float, message: str = "") -> None:
-    """ctx.report_progress() if available, else no-op."""
+    """ctx.report_progress() if available, else no-op (Unit-Tests rufen ohne ctx auf).
+
+    Der einzige Kanal zum Client waehrend eines Tool-Calls. Hier stand daneben
+    ein `ctx.info()` — die Logging-Capability ist mit Spec 2026-07-28
+    abgekuendigt (SEP-2577), und in der modernen Aera stellt das SDK
+    `notifications/message` nur zu, wenn die Anfrage einen Log-Level in `_meta`
+    mitbringt. Die Ansage vor dem Fan-out reist deshalb als Fortschritt 0 von
+    `total`; Betriebslogs gehen wie bisher strukturiert auf stderr.
+    """
     if ctx is not None:
         try:
             await ctx.report_progress(current, total, message or None)
@@ -165,6 +164,10 @@ CACHE_HINTS: dict[CacheableMethod, CacheHint] = {
 
 mcp = MCPServer(
     "global_education_mcp",
+    # Ab 2026-07-28 reist `serverInfo` in `_meta` auf jeder Antwort mit. Ohne
+    # diese Zeile stand dort `"version": ""` — ein Client konnte zwei Staende
+    # dieses Servers nicht auseinanderhalten.
+    version=__version__,
     cache_hints=CACHE_HINTS,
     lifespan=lifespan,
     instructions=(
@@ -178,7 +181,7 @@ mcp = MCPServer(
         "Alle Daten frei zugänglich, keine API-Schlüssel erforderlich. "
         "Ländercodes: ISO 3166-1 Alpha-3 (z.B. CHE=Schweiz, DEU=Deutschland, AUT=Österreich)."
     ),
-    # Default 127.0.0.1: SSE-Mode soll nicht versehentlich im LAN exponiert
+    # Default 127.0.0.1: der HTTP-Modus soll nicht versehentlich im LAN exponiert
     # werden. Fuer Container-Deployment im Reverse-Proxy explizit MCP_HOST=0.0.0.0
     # setzen (siehe README "Cloud Deployment").
 )
@@ -574,7 +577,7 @@ async def uis_compare_countries(params: UISCompareInput, ctx: Optional[Context] 
     errors: list[str] = []
 
     codes = params.country_codes[:15]
-    await _ctx_info(ctx, f"Vergleiche {len(codes)} Länder für Indikator {params.indicator_id}")
+    await _ctx_progress(ctx, 0, len(codes), f"Vergleiche {len(codes)} Länder für Indikator {params.indicator_id}")
 
     progress = {"done": 0}
 
@@ -710,8 +713,10 @@ async def uis_country_education_profile(params: UISCountryProfileInput, ctx: Opt
     ]
 
     errors: list[str] = []
-    await _ctx_info(
+    await _ctx_progress(
         ctx,
+        0,
+        len(key_indicators),
         f"Lade {len(key_indicators)} Schlüsselindikatoren für {params.country_code}",
     )
     progress = {"done": 0}
@@ -1156,8 +1161,10 @@ async def education_benchmark_countries(params: CrossSourceInput, ctx: Optional[
     ]
 
     total_calls = len(selected) * len(params.country_codes)
-    await _ctx_info(
+    await _ctx_progress(
         ctx,
+        0,
+        total_calls,
         f"Benchmark {params.focus}: {len(selected)} Indikatoren × "
         f"{len(params.country_codes)} Länder = {total_calls} Calls",
     )
@@ -1271,12 +1278,38 @@ async def prompt_sdg4() -> str:
 
 # ─── Einstiegspunkt ────────────────────────────────────────────────────────────
 
+# Der HTTP-Transport der Spec 2026-07-28 ist Streamable HTTP: ein POST, ein
+# JSON-RPC-Request, eine Antwort — kein `initialize`, keine `Mcp-Session-Id`.
+# Der SSE-Transport kennt diesen Weg nicht; er ist seit 2025-03-26 abgeloest und
+# bleibt hier nur, damit bestehende Deployments mit `/sse`-URL nicht brechen.
+#
+# `stateless_http=True` passt zur Sache: der Server stellt dem Client keine
+# Rueckfragen (kein Sampling, keine Elicitation) und haelt keinen Zustand pro
+# Verbindung. Die moderne Aera routet das SDK ohnehin am Header vorbei an der
+# Session-Verwaltung; stateless macht die Legacy-Aera auf demselben Endpunkt
+# gleich sessionlos, statt Sessions zu fuehren, die nichts tragen.
+#
+# Dieselben Optionen baut der Protokolltest in seine ASGI-App — er misst also
+# die Konfiguration, die hier startet, nicht eine eigene.
+HTTP_TRANSPORT = "streamable-http"
+LEGACY_TRANSPORTS = ("sse",)
+STREAMABLE_HTTP_PATH = "/mcp"
+STREAMABLE_HTTP_OPTIONS: dict[str, Any] = {
+    "streamable_http_path": STREAMABLE_HTTP_PATH,
+    "stateless_http": True,
+}
+
 
 def main() -> None:
     """Startet den MCP-Server."""
     configure_logging()  # JSON auf stderr, Level aus LOG_LEVEL (Default INFO)
     transport = os.environ.get("MCP_TRANSPORT", "stdio")
     host = os.environ.get("MCP_HOST", "127.0.0.1")
+    port = int(os.environ.get("PORT", "8000"))
+    if transport not in ("stdio", HTTP_TRANSPORT, *LEGACY_TRANSPORTS):
+        # Frueher fiel jeder unbekannte Wert still auf stdio zurueck — ein
+        # Container mit Tippfehler lief dann ohne offenen Port und «ohne Fehler».
+        raise SystemExit(f"MCP_TRANSPORT={transport!r} unbekannt; erlaubt: stdio, {HTTP_TRANSPORT}, sse")
     if transport != "stdio" and host == "0.0.0.0":
         logger.warning(
             "host_exposed_warning",
@@ -1288,13 +1321,21 @@ def main() -> None:
                 }
             },
         )
-    if transport == "sse":
-        # mcp 2.x: the bind address is a run() kwarg, not a constructor arg.
-        mcp.run(
-            transport="sse",
-            host=os.environ.get("MCP_HOST", "127.0.0.1"),
-            port=int(os.environ.get("PORT", "8000")),
+    if transport == HTTP_TRANSPORT:
+        mcp.run(transport="streamable-http", host=host, port=port, **STREAMABLE_HTTP_OPTIONS)
+    elif transport == "sse":
+        logger.warning(
+            "legacy_transport_warning",
+            extra={
+                "extra_fields": {
+                    "transport": transport,
+                    "advice": f"SSE ist seit Spec 2025-03-26 abgeloest; MCP_TRANSPORT={HTTP_TRANSPORT} "
+                    f"bedient beide Aeren unter {STREAMABLE_HTTP_PATH}.",
+                }
+            },
         )
+        # mcp 2.x: the bind address is a run() kwarg, not a constructor arg.
+        mcp.run(transport="sse", host=host, port=port)
     else:
         mcp.run(transport="stdio")
 

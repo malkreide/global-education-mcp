@@ -34,7 +34,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
-    MCP_TRANSPORT=sse \
+    MCP_TRANSPORT=streamable-http \
     MCP_HOST=0.0.0.0 \
     PORT=8000
 
@@ -51,5 +51,7 @@ USER mcp
 WORKDIR /home/mcp
 EXPOSE 8000
 
-# stdio-Mode ist ueber Container wenig sinnvoll; default = sse.
+# stdio-Mode ist ueber Container wenig sinnvoll; default = streamable-http
+# (Endpunkt /mcp, beide Protokoll-Aeren inkl. 2026-07-28). MCP_TRANSPORT=sse
+# bleibt fuer bestehende Deployments mit /sse-URL verfuegbar.
 ENTRYPOINT ["global-education-mcp"]
