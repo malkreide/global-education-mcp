@@ -7,14 +7,15 @@ Versionierung folgt [Semantic Versioning 2.0](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
-## [0.3.6] — 2026-09-27
+## [0.4.0] — 2026-09-27
 
 Schwerpunkt: Spec `2026-07-28` nativ, und die UNESCO-UIS-Anbindung, die an
 drei von vier Pfaden mit HTTP 404 ins Leere lief.
 
 **Achtung, Container-Deployments:** Der HTTP-Endpunkt wechselt von `/sse` auf
 `/mcp` (siehe «Geaendert»). Wer die URL nicht umstellen kann, setzt
-`MCP_TRANSPORT=sse` ausdruecklich.
+`MCP_TRANSPORT=sse` ausdruecklich. Dieser Bruch ist der Grund fuer die
+Minor-Version: eine Patch-Nummer liest man als gefahrlos.
 
 ### Hinzugefuegt
 
@@ -345,8 +346,8 @@ Production-Readiness gemäss Audit-Definition: ✅ erreicht.
 - GitHub-Actions-CI (pytest auf Python 3.11/3.12/3.13)
 - Hatchling-Build + PyPI-Publish-Workflow
 
-[Unreleased]: https://github.com/malkreide/global-education-mcp/compare/v0.3.6...HEAD
-[0.3.6]: https://github.com/malkreide/global-education-mcp/compare/v0.3.5...v0.3.6
+[Unreleased]: https://github.com/malkreide/global-education-mcp/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/malkreide/global-education-mcp/compare/v0.3.5...v0.4.0
 [0.3.5]: https://github.com/malkreide/global-education-mcp/compare/v0.3.3...v0.3.5
 [0.3.0]: https://github.com/malkreide/global-education-mcp/releases/tag/v0.3.0
 [0.2.0]: https://github.com/malkreide/global-education-mcp/releases/tag/v0.2.0
