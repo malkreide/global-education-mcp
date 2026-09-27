@@ -7,6 +7,15 @@ Versionierung folgt [Semantic Versioning 2.0](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.3.6] — 2026-09-27
+
+Schwerpunkt: Spec `2026-07-28` nativ, und die UNESCO-UIS-Anbindung, die an
+drei von vier Pfaden mit HTTP 404 ins Leere lief.
+
+**Achtung, Container-Deployments:** Der HTTP-Endpunkt wechselt von `/sse` auf
+`/mcp` (siehe «Geaendert»). Wer die URL nicht umstellen kann, setzt
+`MCP_TRANSPORT=sse` ausdruecklich.
+
 ### Hinzugefuegt
 
 - **Streamable HTTP als HTTP-Transport — Spec `2026-07-28` nativ erreichbar.**
@@ -27,31 +36,6 @@ Versionierung folgt [Semantic Versioning 2.0](https://semver.org/lang/de/).
   rohes `server/discover` ohne SDK-Client. Der Docker-Smoke-Test in `ci.yml`
   schickt dasselbe `server/discover` per curl an den gehaerteten Container,
   statt nur den TCP-Port zu pruefen.
-
-### Geaendert
-
-- **Container-Default von `sse` auf `streamable-http`** (Dockerfile,
-  `docker-compose.yml`, CI-Smoke-Test). Wer einen bestehenden Client auf
-  `/sse` zeigen laesst, stellt die URL auf `/mcp` um oder setzt
-  `MCP_TRANSPORT=sse` ausdruecklich; der Server schreibt dann beim Start eine
-  `legacy_transport_warning`.
-
-- **Keine Aufrufe der Logging-Capability mehr.** Die Ansage vor dem Fan-out in
-  `uis_compare_countries`, `uis_country_education_profile` und
-  `education_benchmark_countries` lief ueber `ctx.info()`. Die Capability ist
-  mit `2026-07-28` abgekuendigt (SEP-2577); in der modernen Aera stellt das SDK
-  `notifications/message` nur zu, wenn die Anfrage einen Log-Level in `_meta`
-  mitbringt, und jeder Aufruf warf eine `MCPDeprecationWarning`. Die Ansage
-  reist jetzt als Fortschritt `0 von n` und kommt in beiden Aeren an.
-
-- **`serverInfo.version` traegt die Paketversion.** Ab `2026-07-28` reist
-  `serverInfo` im `_meta` jeder Antwort mit; dort stand `"version": ""`.
-
-### Behoben
-
-- **Ein unbekannter `MCP_TRANSPORT`-Wert startete still stdio.** Im Container
-  hiess das: kein offener Port, keine Fehlermeldung. Jetzt bricht der Start mit
-  der Liste der erlaubten Werte ab.
 
 - **Frischehinweise auf den auflistenden Methoden** (SEP-2549, Spec
   `2026-07-28`): `ttlMs` 300000, `cacheScope` `public`. Das SDK setzt beides von
@@ -80,7 +64,86 @@ Versionierung folgt [Semantic Versioning 2.0](https://semver.org/lang/de/).
   dagegen — im Portfolio sind EN und DE desselben Repos schon dreimal
   auseinandergelaufen, weil nur eine Fassung nachgezogen wurde.
 
+- **Aufgezeichnete Fixtures statt handgeschriebener** — `tests/fixtures/`,
+  `scripts/record_fixtures.py`, `tests/fixture_data.py` und ein
+  `PROVENANCE.md` mit Quelle, Aufzeichnungsdatum, Auswahlregel und SHA-256 je
+  Datei.
+
+  Der Anlass steht oben, aber eine Zahl gehoert daneben: Vor dieser Aenderung
+  hatte dieses Repo **128 gruene Tests**, waehrend drei von vier Pfaden 404
+  gaben und jede Datenabfrage leer zurueckkam. Moeglich war das, weil die
+  Mocks dieselben erfundenen Feldnamen trugen wie der Produktivcode —
+  `observations`, `indicatorId`, `entityType`. Ein Mock aus demselben Kopf
+  kann die Annahme dieses Kopfes nicht widerlegen; wo beide irren, irren
+  beide gleich, und die Suite bleibt gruen.
+
+  Drei der neun Fixtures sind **Kontrollen**: ein erfundener `theme`-Wert,
+  ein erfundener Laendercode und dieselbe Zeitreihe zweimal mit
+  unterschiedlichen Parameternamen. Ohne sie belegt eine Messung nur, was ich
+  bekommen habe — nicht, was die Quelle unterscheidet.
+
+  Das Aufzeichnungsskript importiert Basis-URL und Indikatorentabelle aus dem
+  Produktivcode. Ein Skript, das eine andere Adresse fragt als der Server,
+  misst den falschen Gegenstand, und das faellt niemandem auf, weil das
+  Ergebnis plausibel aussieht.
+
+- **Die ersten Live-Tests dieses Repos.** `pytest -m integration` sammelte
+  vorher null ein — nichts hier war je gegen die Quelle gehalten worden. Neu
+  sind 17, davon 7 gegen die Produktivfunktionen selbst.
+
+  Diese Trennung ist nicht kosmetisch: Eine erste Fassung der Live-Tests baute
+  ihre URLs aus Literalen und blieb gruen, als der Pfad im Produktivcode
+  testweise auf `/indicators` zurueckgesetzt wurde. Was geprueft werden soll,
+  muss der Produktivcode aufbauen.
+
+- **`tests/test_source_contract.py`** haelt die lokale Indikatorentabelle, die
+  Feldnamen der Mocks und die Query-Parameter gegen die Aufzeichnung.
+
+  Gegengeprueft mit neun gezielten Rueckmutationen — je einer pro Befund oben.
+  Alle neun machen die Suite rot; ein Test, der nicht fehlschlagen kann,
+  belegt nichts.
+
+- **`scripts/check_version_sync.py` und ein CI-Schritt dafuer.** Der Check
+  vergleicht `pyproject.toml` gegen `server.json` und die README-Badges und
+  meldet zusaetzlich jede von Hand gepflegte Versionsnummer unter `src/`.
+
+  Anlass ist ein Befund in genau diesem Repo: `server.json` stand auf `0.3.3`,
+  waehrend `pyproject.toml` bei `0.3.4` war. Aufgefallen ist es niemandem, und
+  das hat einen strukturellen Grund — `publish.yml` schreibt das Feld beim
+  Veroeffentlichen aus dem Tag-Namen, die committete Zahl wirkt also nie auf
+  das Artefakt und wird von nichts widerlegt. Sie ist aber die Zahl, die
+  Menschen im Repo lesen.
+
+  Dieses Repo war eines von nur zwei im Portfolio ohne diesen Check, und beide
+  waren verstimmt; die uebrigen 31 tragen ihn und waren alle synchron.
+
+  Gegengeprueft: mit dem realen Vorzustand (`server.json` auf 0.3.3) meldet der
+  Check `DRIFT` und beendet sich mit Exit 1.
+
+### Geaendert
+
+- **Container-Default von `sse` auf `streamable-http`** (Dockerfile,
+  `docker-compose.yml`, CI-Smoke-Test). Wer einen bestehenden Client auf
+  `/sse` zeigen laesst, stellt die URL auf `/mcp` um oder setzt
+  `MCP_TRANSPORT=sse` ausdruecklich; der Server schreibt dann beim Start eine
+  `legacy_transport_warning`.
+
+- **Keine Aufrufe der Logging-Capability mehr.** Die Ansage vor dem Fan-out in
+  `uis_compare_countries`, `uis_country_education_profile` und
+  `education_benchmark_countries` lief ueber `ctx.info()`. Die Capability ist
+  mit `2026-07-28` abgekuendigt (SEP-2577); in der modernen Aera stellt das SDK
+  `notifications/message` nur zu, wenn die Anfrage einen Log-Level in `_meta`
+  mitbringt, und jeder Aufruf warf eine `MCPDeprecationWarning`. Die Ansage
+  reist jetzt als Fortschritt `0 von n` und kommt in beiden Aeren an.
+
+- **`serverInfo.version` traegt die Paketversion.** Ab `2026-07-28` reist
+  `serverInfo` im `_meta` jeder Antwort mit; dort stand `"version": ""`.
+
 ### Behoben
+
+- **Ein unbekannter `MCP_TRANSPORT`-Wert startete still stdio.** Im Container
+  hiess das: kein offener Port, keine Fehlermeldung. Jetzt bricht der Start mit
+  der Liste der erlaubten Werte ab.
 
 - **`README.md` hatte zwei `## Installation`-Abschnitte.** Der als
   `<!-- BEGIN GENERATED: install -->` markierte Block wurde ans Ende
@@ -106,9 +169,6 @@ Versionierung folgt [Semantic Versioning 2.0](https://semver.org/lang/de/).
   `README.md` stehen, und ist als HTML-Kommentar fuer Leser ohnehin
   unsichtbar. Eine zweite Zuordnung waere keine Uebersetzung, sondern ein
   zweiter Anspruch.
-
-
-### Behoben
 
 - **Drei von vier UNESCO-UIS-Pfaden gaben HTTP 404 — auf jede Anfrage.**
   Gebaut wurden `/indicators`, `/geo-units` und `/data`; die Quelle fuehrt
@@ -194,64 +254,6 @@ Versionierung folgt [Semantic Versioning 2.0](https://semver.org/lang/de/).
   nicht, der Ausdruck fiel auf den Code zurueck. Ausgegeben wird jetzt der
   Code, mit einem Verweis auf `uis_list_countries` fuer die Namen — ein
   erfundener Name waere die schlechtere Antwort als ein blosser Code.
-
-### Hinzugefuegt
-
-- **Aufgezeichnete Fixtures statt handgeschriebener** — `tests/fixtures/`,
-  `scripts/record_fixtures.py`, `tests/fixture_data.py` und ein
-  `PROVENANCE.md` mit Quelle, Aufzeichnungsdatum, Auswahlregel und SHA-256 je
-  Datei.
-
-  Der Anlass steht oben, aber eine Zahl gehoert daneben: Vor dieser Aenderung
-  hatte dieses Repo **128 gruene Tests**, waehrend drei von vier Pfaden 404
-  gaben und jede Datenabfrage leer zurueckkam. Moeglich war das, weil die
-  Mocks dieselben erfundenen Feldnamen trugen wie der Produktivcode —
-  `observations`, `indicatorId`, `entityType`. Ein Mock aus demselben Kopf
-  kann die Annahme dieses Kopfes nicht widerlegen; wo beide irren, irren
-  beide gleich, und die Suite bleibt gruen.
-
-  Drei der neun Fixtures sind **Kontrollen**: ein erfundener `theme`-Wert,
-  ein erfundener Laendercode und dieselbe Zeitreihe zweimal mit
-  unterschiedlichen Parameternamen. Ohne sie belegt eine Messung nur, was ich
-  bekommen habe — nicht, was die Quelle unterscheidet.
-
-  Das Aufzeichnungsskript importiert Basis-URL und Indikatorentabelle aus dem
-  Produktivcode. Ein Skript, das eine andere Adresse fragt als der Server,
-  misst den falschen Gegenstand, und das faellt niemandem auf, weil das
-  Ergebnis plausibel aussieht.
-
-- **Die ersten Live-Tests dieses Repos.** `pytest -m integration` sammelte
-  vorher null ein — nichts hier war je gegen die Quelle gehalten worden. Neu
-  sind 17, davon 7 gegen die Produktivfunktionen selbst.
-
-  Diese Trennung ist nicht kosmetisch: Eine erste Fassung der Live-Tests baute
-  ihre URLs aus Literalen und blieb gruen, als der Pfad im Produktivcode
-  testweise auf `/indicators` zurueckgesetzt wurde. Was geprueft werden soll,
-  muss der Produktivcode aufbauen.
-
-- **`tests/test_source_contract.py`** haelt die lokale Indikatorentabelle, die
-  Feldnamen der Mocks und die Query-Parameter gegen die Aufzeichnung.
-
-  Gegengeprueft mit neun gezielten Rueckmutationen — je einer pro Befund oben.
-  Alle neun machen die Suite rot; ein Test, der nicht fehlschlagen kann,
-  belegt nichts.
-
-- **`scripts/check_version_sync.py` und ein CI-Schritt dafuer.** Der Check
-  vergleicht `pyproject.toml` gegen `server.json` und die README-Badges und
-  meldet zusaetzlich jede von Hand gepflegte Versionsnummer unter `src/`.
-
-  Anlass ist ein Befund in genau diesem Repo: `server.json` stand auf `0.3.3`,
-  waehrend `pyproject.toml` bei `0.3.4` war. Aufgefallen ist es niemandem, und
-  das hat einen strukturellen Grund — `publish.yml` schreibt das Feld beim
-  Veroeffentlichen aus dem Tag-Namen, die committete Zahl wirkt also nie auf
-  das Artefakt und wird von nichts widerlegt. Sie ist aber die Zahl, die
-  Menschen im Repo lesen.
-
-  Dieses Repo war eines von nur zwei im Portfolio ohne diesen Check, und beide
-  waren verstimmt; die uebrigen 31 tragen ihn und waren alle synchron.
-
-  Gegengeprueft: mit dem realen Vorzustand (`server.json` auf 0.3.3) meldet der
-  Check `DRIFT` und beendet sich mit Exit 1.
 
 ## [0.3.5] — 2026-07-31
 
@@ -343,6 +345,8 @@ Production-Readiness gemäss Audit-Definition: ✅ erreicht.
 - GitHub-Actions-CI (pytest auf Python 3.11/3.12/3.13)
 - Hatchling-Build + PyPI-Publish-Workflow
 
-[Unreleased]: https://github.com/malkreide/global-education-mcp/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/malkreide/global-education-mcp/compare/v0.3.6...HEAD
+[0.3.6]: https://github.com/malkreide/global-education-mcp/compare/v0.3.5...v0.3.6
+[0.3.5]: https://github.com/malkreide/global-education-mcp/compare/v0.3.3...v0.3.5
 [0.3.0]: https://github.com/malkreide/global-education-mcp/releases/tag/v0.3.0
 [0.2.0]: https://github.com/malkreide/global-education-mcp/releases/tag/v0.2.0
