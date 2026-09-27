@@ -75,8 +75,8 @@ jobs:
 
       - name: Smoke-test sandboxed runtime
         # Startet den Container mit denselben Flags wie docker-compose.yml
-        # (read-only, cap-drop, no-new-privileges), wartet auf Port 8000 und
-        # schickt dann ein `server/discover` in der Drahtform von Spec
+        # (read-only, cap-drop, no-new-privileges) und schickt wiederholt ein
+        # `server/discover` in der Drahtform von Spec
         # 2026-07-28 an /mcp — dieselbe Anfrage wie
         # tests/test_streamable_http.py::discover_request. Ein offener Port
         # allein sagte nur «lebt», nicht «spricht die Revision».
@@ -88,27 +88,31 @@ jobs:
             -p 127.0.0.1:8000:8000 \
             -e MCP_TRANSPORT=streamable-http -e MCP_HOST=0.0.0.0 \
             global-education-mcp:ci
-          ok=0
+          # Bereitschaft am Protokoll messen, nicht am Port: der Docker-Proxy
+          # auf dem Host nimmt TCP an, bevor der Prozess im Container lauscht.
+          # Ein Port-Check war deshalb nach 1s «gruen», und die erste echte
+          # Anfrage lief in ein Connection reset (Lauf 36313900365).
+          # Protokoll: moderner Einzel-POST ohne initialize, ohne Session.
+          discover=""
           for i in $(seq 1 15); do
-            if python3 -c "import socket; socket.create_connection(('127.0.0.1', 8000), timeout=1).close()" 2>/dev/null; then
-              echo "port 8000 reachable after ${i}s"
-              ok=1; break
+            if discover=$(curl -sS --fail --max-time 5 http://127.0.0.1:8000/mcp \
+              -H 'content-type: application/json' \
+              -H 'accept: application/json, text/event-stream' \
+              -H 'mcp-protocol-version: 2026-07-28' \
+              -H 'mcp-method: server/discover' \
+              -d '{"jsonrpc":"2.0","id":1,"method":"server/discover","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientInfo":{"name":"ci-smoke","version":"0"},"io.modelcontextprotocol/clientCapabilities":{}}}}' 2>/dev/null); then
+              echo "server/discover answered after ${i}s"
+              break
             fi
+            discover=""
             sleep 1
           done
-          if [ "$ok" != "1" ]; then
-            echo "::error::server did not become reachable in 15s"
+          if [ -z "$discover" ]; then
+            echo "::error::server did not answer server/discover in 15s"
             docker logs ge-mcp-ci
             docker stop ge-mcp-ci || true
             exit 1
           fi
-          # Protokoll: moderner Einzel-POST ohne initialize, ohne Session.
-          discover=$(curl -sS --max-time 5 http://127.0.0.1:8000/mcp \
-            -H 'content-type: application/json' \
-            -H 'accept: application/json, text/event-stream' \
-            -H 'mcp-protocol-version: 2026-07-28' \
-            -H 'mcp-method: server/discover' \
-            -d '{"jsonrpc":"2.0","id":1,"method":"server/discover","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientInfo":{"name":"ci-smoke","version":"0"},"io.modelcontextprotocol/clientCapabilities":{}}}}')
           echo "$discover" | python3 -c 'import json,sys; r=json.load(sys.stdin)["result"]; assert "2026-07-28" in r["supportedVersions"], r; print("server/discover:", r["supportedVersions"], r["_meta"])' \
             || { echo "::error::server/discover did not answer 2026-07-28: $discover"; docker logs ge-mcp-ci; docker stop ge-mcp-ci || true; exit 1; }
           # Verifizieren: Prozess laeuft als non-root (uid 10001)
