@@ -38,6 +38,14 @@ Minor-Version: eine Patch-Nummer liest man als gefahrlos.
   schickt dasselbe `server/discover` per curl an den gehaerteten Container,
   statt nur den TCP-Port zu pruefen.
 
+  Auch die Wartezeit davor misst jetzt am Protokoll und nicht am Port. Der
+  Docker-Proxy auf dem Host nimmt TCP an, bevor der Prozess im Container
+  lauscht: Der Port-Check war nach 1 s gruen, das erste `server/discover`
+  lief in «Connection reset by peer» (Lauf 36313900365). Die Schleife
+  wiederholt deshalb die Protokollanfrage selbst, bis zu 15 s lang. In der
+  CI antwortete der Server nach dem dritten Versuch; der alte Check haette
+  bei jedem Start, der laenger als 1 s dauert, rot gemeldet.
+
 - **Frischehinweise auf den auflistenden Methoden** (SEP-2549, Spec
   `2026-07-28`): `ttlMs` 300000, `cacheScope` `public`. Das SDK setzt beides von
   sich aus auf «sofort veraltet, nie geteilt» — wer nichts übergibt, lässt jeden
